@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urgence Lilloise Semi FivePD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: #0a0a0c;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            
+            /* NOUVELLE BANNIÈRE */
+            background-image: linear-gradient(rgba(10, 10, 12, 0.4), rgba(10, 10, 12, 0.4)), 
+                              url('https://media.discordapp.net/attachments/1525164832087736441/1529277636134568087/image.png?ex=6a615a49&is=6a6008c9&hm=c427cd5b7d609a5a84fc47b101b0d27ca3d608c56cf720fd938474acd365eaad&=&format=webp&quality=lossless');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        /* HEADER */
+        header {
+            padding: 25px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            background: rgba(10, 10, 12, 0.5);
+            backdrop-filter: blur(8px);
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo img {
+            height: 45px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .logo span {
+            color: #e11d48;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        nav a {
+            color: #a1a1aa;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: 0.3s;
+        }
+
+        nav a:hover, nav a.active {
+            color: #ffffff;
+        }
+
+        .btn-header {
+            background: #e11d48;
+            color: white;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4);
+        }
+
+        .btn-header:hover {
+            background: #be123c;
+            transform: translateY(-2px);
+        }
+
+        /* HERO SECTION */
+        .hero {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 80px;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 550px;
+            z-index: 2;
+        }
+
+        /* TITRE TRICOLORE BLEU BLANC ROUGE */
+        .title {
+            font-size: 4.5rem;
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            background: linear-gradient(90deg, #0055a5 0%, #ffffff 50%, #e11d48 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.9));
+        }
+
+        .badge-creator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(10, 10, 12, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .badge-creator i {
+            color: #e11d48;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-main {
+            background: #e11d48;
+            color: white;
+            padding: 14px 32px;
+            border-radius: 6px;
+            font-weight: 800;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: 0.3s;
+            box-shadow: 0 4px 20px rgba(225, 29, 72, 0.6);
+        }
+
+        .btn-main:hover {
+            background: #be123c;
+            transform: scale(1.03);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="logo">
+            <img src="https://media.discordapp.net/attachments/1490687935509430293/1529274485063028807/logo.png?ex=6a615759&is=6a6005d9&hm=097142531e6bc6a87627bc785c57bfbceae7245f06f4d118411ee0c3c3c9bf23&=&format=webp&quality=lossless" alt="Logo Urgence Lilloise">
+            Urgence Lilloise <span>Semi FivePD</span>
+        </a>
+        <nav>
+            <a href="/" class="active">Accueil</a>
+            <a href="/recrutement">Métiers</a>
+            <a href="<%= discordUrl || '#' %>" target="_blank">Contact</a>
+            <a href="/recrutement" class="btn-header">Rejoins-nous!</a>
+        </nav>
+    </header>
+
+    <main class="hero">
+        <div class="hero-content">
+            <h1 class="title">Rejoins<br>la Famille</h1>
+            
+            <div class="actions">
+                <div class="badge-creator">
+                    <i class="fa-solid fa-code"></i>
+                    <span>Créé par <strong>ymn_0ffcl</strong></span>
+                </div>
+                <a href="<%= discordUrl || '#' %>" target="_blank" class="btn-main">Jouer</a>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
