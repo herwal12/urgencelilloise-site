@@ -1,1 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Règlement - Urgence Lilloise</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    }
 
+    body {
+      background-color: #0a0a0c;
+      color: #ffffff;
+      min-height: 100vh;
+      padding: 40px 10%;
+    }
+
+    .sub-title {
+      color: #e52d48;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .sub-title::before {
+      content: '— ';
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+    }
+
+    .description {
+      color: #a0a0a0;
+      font-size: 1rem;
+      margin-bottom: 40px;
+    }
+
+    /* CARDS EN HAUT */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background-color: #222;
+      border: 1px solid #222;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background-color: #0e0e12;
+      padding: 30px;
+    }
+
+    .card-num {
+      color: #e52d48;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    .card h2 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    .card ul {
+      list-style: none;
+    }
+
+    .card ul li {
+      color: #cccccc;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .card ul li::before {
+      content: '—';
+      color: #e52d48;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    /* ACCORDEONS EN BAS */
+    .notice {
+      background-color: #0e0e12;
+      border: 1px solid #222;
+      padding: 20px;
+      border-radius: 6px 6px 0 0;
+      color: #aaa;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .accordion-container {
+      border: 1px solid #222;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      overflow: hidden;
+    }
+
+    details {
+      background-color: #0e0e12;
+      border-top: 1px solid #1a1a22;
+      padding: 18px 20px;
+      transition: background 0.2s;
+    }
+
+    details[open] {
+      background-color: #121218;
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .acc-title {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .acc-num {
+      color: #e52d48;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .acc-icon {
+      font-size: 1.1rem;
+    }
+
+    .acc-content {
+      margin-top: 15px;
+      color: #bbb;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      padding-left: 55px;
+    }
+
+    .plus-icon {
+      color: #888;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sub-title">À lire avant de jouer</div>
+  <h1>Règlement</h1>
+  <p class="description">Trois piliers pour garantir une expérience RP saine et respectueuse pour tous.</p>
+
+  <!-- 3 CARTES HAUT -->
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-num">01 — DISCORD</div>
+      <h2>Règlement Discord</h2>
+      <ul>
+        <li>Respect entre tous les membres</li>
+        <li>Pas de spam ni de publicité</li>
+        <li>Un salon, un sujet</li>
+        <li>Pseudo et grade à jour</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-num">02 — RP</div>
+      <h2>Règlement RP</h2>
+      <ul>
+        <li>Le RP prime sur le gain personnel</li>
+        <li>Pas de RDM ni de VDM</li>
+        <li>Metagaming et powergaming interdits</li>
+        <li>Un personnage, une cohérence</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-num">03 — SANCTIONS</div>
+      <h2>Sanctions</h2>
+      <ul>
+        <li>Avertissement puis mise à pied</li>
+        <li>Ban temporaire selon la gravité</li>
+        <li>Ban définitif en cas de récidive</li>
+        <li>Décision de la modération finale</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LISTE DES RÈGLES DÉTAILLÉES -->
+  <div class="notice">
+    En rejoignant <strong>Urgence Lilloise RP</strong>, vous acceptez l'intégralité du règlement ci-dessous. Il a pour objectif de garantir une expérience RolePlay sérieuse, immersive et respectueuse pour tous les joueurs.
+  </div>
+
+  <div class="accordion-container">
+
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">01</span>
+          <span class="acc-icon">🤝</span>
+          <span>Respect</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        Le respect est obligatoire envers tous les joueurs et le staff, HRP comme RP. Insultes, propos haineux, discriminations ou harcèlement entraînent un ban définitif immédiat.
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">02</span>
+          <span class="acc-icon">🎭</span>
+          <span>Le Roleplay</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        Privilégiez toujours la qualité des scènes au WinRP. Restez dans votre personnage en toutes circonstances (FearRP, PainRP).
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">03</span>
+          <span class="acc-icon">🧠</span>
+          <span>Metagaming</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        Utiliser des informations obtenues en HRP (Stream, Discord, etc.) dans le jeu est strictly interdit et sévèrement puni.
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">04</span>
+          <span class="acc-icon">💪</span>
+          <span>Powergaming</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        Faire des actions irréalistes ou impossibles dans la vraie vie (ex: conduire une citadine à 200 km/h dans la montagne) est interdit.
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">05</span>
+          <span class="acc-icon">🔫</span>
+          <span>Freekill (FK / RDM)</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        Tuer ou attaquer un autre joueur sans aucune raison valable ou sans scène RP préalable est strictement interdit.
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">06</span>
+          <span class="acc-icon">🚗</span>
+          <span>Vehicle Death Match (VDM)</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        Utiliser son véhicule comme une arme pour écraser volontairement des joueurs sans raison valable est interdit.
+      </div>
+    </details>
+
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">07</span>
+          <span class="acc-icon">💀</span>
+          <span>New Life Rule (NLR)</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        En cas de mort/coma et réanimation à l'hôpital, vous oubliez la scène qui a mené à votre mort. Vous ne pouvez pas retourner sur la même scène.
+      </div>
+    </details>
+
+  </div>
+
+</body>
+</html>
