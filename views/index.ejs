@@ -21,7 +21,7 @@
       flex-direction: column;
       overflow-x: hidden;
 
-      /* NOUVELLE BANNIÈRE */
+      /* BANNIÈRE */
       background-image: linear-gradient(rgba(10, 10, 12, 0.4), rgba(10, 10, 12, 0.4)),
                         url('https://media.discordapp.net/attachments/1525164832087736441/1529277636134568087/image.png?ex=6a615a49&is=6a6008c9&hm=c427cd5b7d609a5a84fc47b101b0d27ca3d608c56cf720fd938474acd365eaadd&=&format=webp&quality=lossless');
       background-size: cover;
@@ -210,7 +210,7 @@
       display: flex;
       gap: 20px;
       width: max-content;
-      animation: scrollJobs 25s linear infinite;
+      animation: scrollJobs 30s linear infinite;
     }
 
     .carousel-track:hover {
@@ -227,8 +227,8 @@
     }
 
     .job-card {
-      width: 250px;
-      height: 350px;
+      width: 260px;
+      height: 360px;
       border-radius: 12px;
       background-size: cover;
       background-position: center;
@@ -268,16 +268,22 @@
       margin-bottom: 8px;
     }
 
-    .job-badge.legal {
+    .job-badge.police {
       background: rgba(45, 125, 229, 0.2);
       color: #4da6ff;
       border-color: rgba(45, 125, 229, 0.4);
     }
 
-    .job-badge.dir {
-      background: rgba(229, 160, 45, 0.2);
-      color: #ffb84d;
-      border-color: rgba(229, 160, 45, 0.4);
+    .job-badge.samu {
+      background: rgba(229, 219, 45, 0.2);
+      color: #ffe64d;
+      border-color: rgba(229, 219, 45, 0.4);
+    }
+
+    .job-badge.prot {
+      background: rgba(229, 116, 45, 0.2);
+      color: #ff9d4d;
+      border-color: rgba(229, 116, 45, 0.4);
     }
 
     .job-card h3 {
@@ -334,85 +340,101 @@
 
     <div class="carousel-track">
       
-      <!-- SÉRIE 1 -->
-      <div class="job-card" style="background-image: url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=600');">
+      <!-- SÉRIE 1 (Photos IRL) -->
+      <div class="job-card" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Samu_de_Paris_2020.jpg/800px-Samu_de_Paris_2020.jpg');">
         <div class="job-overlay">
-          <span class="job-badge legal">Forces de l'ordre</span>
-          <h3>Gendarmerie</h3>
-          <p>Patrouillez sur les routes et sécurisez les zones périurbaines.</p>
+          <span class="job-badge samu">Urgences Médicales</span>
+          <h3>SAMU</h3>
+          <p>Intervenez sur les urgences vitale et prodiguez les premiers soins sur le terrain.</p>
         </div>
       </div>
 
-      <div class="job-card" style="background-image: url('https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=600');">
+      <div class="job-card" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Peugeot_5008_Police_Nationale.jpg/800px-Peugeot_5008_Police_Nationale.jpg');">
         <div class="job-overlay">
-          <span class="job-badge dir">Voirie & Sécurité</span>
-          <h3>DIR</h3>
-          <p>Assurez la sécurité du réseau routier et balisez les interventions.</p>
-        </div>
-      </div>
-
-      <div class="job-card" style="background-image: url('https://images.unsplash.com/photo-1541872703-74c5e44368f9?q=80&w=600');">
-        <div class="job-overlay">
-          <span class="job-badge legal">Forces de l'ordre</span>
+          <span class="job-badge police">Forces de l'ordre</span>
           <h3>Police Nationale</h3>
-          <p>Intervenez sur les appels d'urgence et maintenez l'ordre en ville.</p>
+          <p>Assurez la sécurité en milieu urbain et menez des enquêtes judiciaires.</p>
         </div>
       </div>
 
-      <div class="job-card" style="background-image: url('https://images.unsplash.com/photo-1587745416684-47953f16f02f?q=80&w=600');">
+      <div class="job-card" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Police_municipale_Lille.jpg/800px-Police_municipale_Lille.jpg');">
         <div class="job-overlay">
-          <span class="job-badge legal">Forces de l me</span>
+          <span class="job-badge police">Proximité</span>
           <h3>Police Municipale</h3>
-          <p>Assurez la proximité et la tranquillité publique auprès des citoyens.</p>
+          <p>Veillez au respect de l'ordre public et à la tranquillité des Lillois au quotidien.</p>
+        </div>
+      </div>
+
+      <div class="job-card" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Gendarmerie_Nationale_Peugeot_5008.jpg/800px-Gendarmerie_Nationale_Peugeot_5008.jpg');">
+        <div class="job-overlay">
+          <span class="job-badge police">Forces de l'ordre</span>
+          <h3>Gendarmerie</h3>
+          <p>Patrouillez sur les axes routiers et sécurisez l'ensemble du territoire périalpin/rural.</p>
         </div>
       </div>
 
       <div class="job-card" style="background-image: url('https://images.unsplash.com/photo-1508962914676-134849a727f0?q=80&w=600');">
         <div class="job-overlay">
           <span class="job-badge">Illégal</span>
-          <h3>Illégalité</h3>
-          <p>Opérez dans l'ombre, gérez vos affaires et échappez aux forces de l'ordre.</p>
+          <h3>Illégal</h3>
+          <p>Développez vos réseaux clandestins, trafics et affaires hors-la-loi.</p>
+        </div>
+      </div>
+
+      <div class="job-card" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Protection_Civile_France_Vehicule.jpg/800px-Protection_Civile_France_Vehicule.jpg');">
+        <div class="job-overlay">
+          <span class="job-badge prot">Secourisme</span>
+          <h3>Protection Civile</h3>
+          <p>Soutenez les populations, gérez les dispositifs prévisionnels de secours et d'aide.</p>
         </div>
       </div>
 
       <!-- SÉRIE 2 (Duplication exacte pour boucle infinie) -->
-      <div class="job-card" style="background-image: url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=600');">
+      <div class="job-card" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Samu_de_Paris_2020.jpg/800px-Samu_de_Paris_2020.jpg');">
         <div class="job-overlay">
-          <span class="job-badge legal">Forces de l'ordre</span>
-          <h3>Gendarmerie</h3>
-          <p>Patrouillez sur les routes et sécurisez les zones périurbaines.</p>
+          <span class="job-badge samu">Urgences Médicales</span>
+          <h3>SAMU</h3>
+          <p>Intervenez sur les urgences vitale et prodiguez les premiers soins sur le terrain.</p>
         </div>
       </div>
 
-      <div class="job-card" style="background-image: url('https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=600');">
+      <div class="job-card" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Peugeot_5008_Police_Nationale.jpg/800px-Peugeot_5008_Police_Nationale.jpg');">
         <div class="job-overlay">
-          <span class="job-badge dir">Voirie & Sécurité</span>
-          <h3>DIR</h3>
-          <p>Assurez la sécurité du réseau routier et balisez les interventions.</p>
-        </div>
-      </div>
-
-      <div class="job-card" style="background-image: url('https://images.unsplash.com/photo-1541872703-74c5e44368f9?q=80&w=600');">
-        <div class="job-overlay">
-          <span class="job-badge legal">Forces de l'ordre</span>
+          <span class="job-badge police">Forces de l'ordre</span>
           <h3>Police Nationale</h3>
-          <p>Intervenez sur les appels d'urgence et maintenez l'ordre en ville.</p>
+          <p>Assurez la sécurité en milieu urbain et menez des enquêtes judiciaires.</p>
         </div>
       </div>
 
-      <div class="job-card" style="background-image: url('https://images.unsplash.com/photo-1587745416684-47953f16f02f?q=80&w=600');">
+      <div class="job-card" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Police_municipale_Lille.jpg/800px-Police_municipale_Lille.jpg');">
         <div class="job-overlay">
-          <span class="job-badge legal">Forces de l'ordre</span>
+          <span class="job-badge police">Proximité</span>
           <h3>Police Municipale</h3>
-          <p>Assurez la proximité et la tranquillité publique auprès des citoyens.</p>
+          <p>Veillez au respect de l'ordre public et à la tranquillité des Lillois au quotidien.</p>
+        </div>
+      </div>
+
+      <div class="job-card" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Gendarmerie_Nationale_Peugeot_5008.jpg/800px-Gendarmerie_Nationale_Peugeot_5008.jpg');">
+        <div class="job-overlay">
+          <span class="job-badge police">Forces de l'ordre</span>
+          <h3>Gendarmerie</h3>
+          <p>Patrouillez sur les axes routiers et sécurisez l'ensemble du territoire périalpin/rural.</p>
         </div>
       </div>
 
       <div class="job-card" style="background-image: url('https://images.unsplash.com/photo-1508962914676-134849a727f0?q=80&w=600');">
         <div class="job-overlay">
           <span class="job-badge">Illégal</span>
-          <h3>Illégalité</h3>
-          <p>Opérez dans l'ombre, gérez vos affaires et échappez aux forces de l'ordre.</p>
+          <h3>Illégal</h3>
+          <p>Développez vos réseaux clandestins, trafics et affaires hors-la-loi.</p>
+        </div>
+      </div>
+
+      <div class="job-card" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Protection_Civile_France_Vehicule.jpg/800px-Protection_Civile_France_Vehicule.jpg');">
+        <div class="job-overlay">
+          <span class="job-badge prot">Secourisme</span>
+          <h3>Protection Civile</h3>
+          <p>Soutenez les populations, gérez les dispositifs prévisionnels de secours et d'aide.</p>
         </div>
       </div>
 
