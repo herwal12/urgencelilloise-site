@@ -93,7 +93,27 @@
     .description {
       color: #a0a0a0;
       font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
+    /* ENCADRÉ D'ACCEPTATION AUTOMATIQUE */
+    .acceptance-notice {
+      background: rgba(229, 45, 72, 0.1);
+      border-left: 4px solid #e52d48;
+      padding: 15px 20px;
+      border-radius: 0 8px 8px 0;
       margin-bottom: 30px;
+      color: #ffffff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .acceptance-notice i {
+      color: #e52d48;
+      font-size: 1.2rem;
     }
 
     .accordion-container {
@@ -211,6 +231,12 @@
   <div class="sub-title">À lire attentivement</div>
   <h1>Règlement Officiel</h1>
   <p class="description">Le respect de ces règles est obligatoire pour garantir une expérience Roleplay de qualité sur Urgence Lilloise.</p>
+
+  <!-- ENCADRÉ D'AVERTISSEMENT -->
+  <div class="acceptance-notice">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <span>En rejoignant le serveur Urgence Lilloise, vous acceptez automatiquement l'intégralité de ce règlement.</span>
+  </div>
 
   <div class="accordion-container">
 
