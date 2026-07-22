@@ -40,7 +40,10 @@ app.get('/', async (req, res) => {
         discordUrl: process.env.DISCORD_INVITE_URL 
     });
 });
-
+// Page de règlement
+app.get('/reglement', (req, res) => {
+  res.render('reglement');
+});
 // Page de recrutement
 app.get('/recrutement', (req, res) => {
     res.render('recrutement', { 
