@@ -20,6 +20,20 @@
       padding: 40px 10%;
     }
 
+    .header-nav {
+      margin-bottom: 30px;
+    }
+
+    .header-nav a {
+      color: #e52d48;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .sub-title {
       color: #e52d48;
       font-size: 0.8rem;
@@ -44,83 +58,24 @@
     .description {
       color: #a0a0a0;
       font-size: 1rem;
-      margin-bottom: 40px;
-    }
-
-    /* CARDS EN HAUT */
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1px;
-      background-color: #222;
-      border: 1px solid #222;
-      border-radius: 6px;
-      overflow: hidden;
-      margin-bottom: 40px;
-    }
-
-    .card {
-      background-color: #0e0e12;
-      padding: 30px;
-    }
-
-    .card-num {
-      color: #e52d48;
-      font-size: 0.85rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-      letter-spacing: 1px;
-    }
-
-    .card h2 {
-      font-size: 1.3rem;
-      font-weight: 800;
-      margin-bottom: 20px;
-      text-transform: uppercase;
-    }
-
-    .card ul {
-      list-style: none;
-    }
-
-    .card ul li {
-      color: #cccccc;
-      font-size: 0.9rem;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-    }
-
-    .card ul li::before {
-      content: '—';
-      color: #e52d48;
-      margin-right: 10px;
-      font-weight: bold;
-    }
-
-    /* ACCORDEONS EN BAS */
-    .notice {
-      background-color: #0e0e12;
-      border: 1px solid #222;
-      padding: 20px;
-      border-radius: 6px 6px 0 0;
-      color: #aaa;
-      font-size: 0.9rem;
-      line-height: 1.5;
+      margin-bottom: 30px;
     }
 
     .accordion-container {
       border: 1px solid #222;
-      border-top: none;
-      border-radius: 0 0 6px 6px;
+      border-radius: 8px;
       overflow: hidden;
+      background-color: #0e0e12;
     }
 
     details {
-      background-color: #0e0e12;
-      border-top: 1px solid #1a1a22;
+      border-bottom: 1px solid #1a1a22;
       padding: 18px 20px;
       transition: background 0.2s;
+    }
+
+    details:last-child {
+      border-bottom: none;
     }
 
     details[open] {
@@ -134,7 +89,7 @@
       align-items: center;
       justify-content: space-between;
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 1rem;
       text-transform: uppercase;
     }
 
@@ -150,172 +105,389 @@
 
     .acc-num {
       color: #e52d48;
-      font-size: 0.85rem;
-      font-weight: 700;
-    }
-
-    .acc-icon {
-      font-size: 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 800;
+      min-width: 25px;
     }
 
     .acc-content {
       margin-top: 15px;
-      color: #bbb;
-      font-size: 0.9rem;
+      color: #ccc;
+      font-size: 0.95rem;
       line-height: 1.6;
-      padding-left: 55px;
+      padding-left: 40px;
+    }
+
+    .acc-content p {
+      margin-bottom: 10px;
+    }
+
+    .acc-content ul {
+      list-style: none;
+      margin-top: 8px;
+    }
+
+    .acc-content ul li {
+      margin-bottom: 6px;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .acc-content ul li::before {
+      content: '•';
+      color: #e52d48;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .subtitle-block {
+      color: #ffffff;
+      font-weight: 700;
+      margin-top: 12px;
+      margin-bottom: 6px;
     }
 
     .plus-icon {
       color: #888;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+    }
+
+    .sanction-box {
+      background: rgba(229, 45, 72, 0.1);
+      border-left: 3px solid #e52d48;
+      padding: 10px 15px;
+      margin-top: 12px;
+      font-weight: 700;
+      color: #ff6b81;
     }
   </style>
 </head>
 <body>
 
-  <div class="sub-title">À lire avant de jouer</div>
-  <h1>Règlement</h1>
-  <p class="description">Trois piliers pour garantir une expérience RP saine et respectueuse pour tous.</p>
-
-  <!-- 3 CARTES HAUT -->
-  <div class="cards-grid">
-    <div class="card">
-      <div class="card-num">01 — DISCORD</div>
-      <h2>Règlement Discord</h2>
-      <ul>
-        <li>Respect entre tous les membres</li>
-        <li>Pas de spam ni de publicité</li>
-        <li>Un salon, un sujet</li>
-        <li>Pseudo et grade à jour</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <div class="card-num">02 — RP</div>
-      <h2>Règlement RP</h2>
-      <ul>
-        <li>Le RP prime sur le gain personnel</li>
-        <li>Pas de RDM ni de VDM</li>
-        <li>Metagaming et powergaming interdits</li>
-        <li>Un personnage, une cohérence</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <div class="card-num">03 — SANCTIONS</div>
-      <h2>Sanctions</h2>
-      <ul>
-        <li>Avertissement puis mise à pied</li>
-        <li>Ban temporaire selon la gravité</li>
-        <li>Ban définitif en cas de récidive</li>
-        <li>Décision de la modération finale</li>
-      </ul>
-    </div>
+  <div class="header-nav">
+    <a href="/"><i class="fa-solid fa-arrow-left"></i> Retour à l'accueil</a>
   </div>
 
-  <!-- LISTE DES RÈGLES DÉTAILLÉES -->
-  <div class="notice">
-    En rejoignant <strong>Urgence Lilloise RP</strong>, vous acceptez l'intégralité du règlement ci-dessous. Il a pour objectif de garantir une expérience RolePlay sérieuse, immersive et respectueuse pour tous les joueurs.
-  </div>
+  <div class="sub-title">À lire attentivement</div>
+  <h1>Règlement Officiel</h1>
+  <p class="description">Le respect de ces règles est obligatoire pour garantir une expérience Roleplay de qualité sur Urgence Lilloise.</p>
 
   <div class="accordion-container">
 
+    <!-- 1. Règlement Général -->
     <details>
       <summary>
         <div class="acc-title">
           <span class="acc-num">01</span>
-          <span class="acc-icon">🤝</span>
-          <span>Respect</span>
+          <span>Règlement Général</span>
         </div>
         <span class="plus-icon">+</span>
       </summary>
       <div class="acc-content">
-        Le respect est obligatoire envers tous les joueurs et le staff, HRP comme RP. Insultes, propos haineux, discriminations ou harcèlement entraînent un ban définitif immédiat.
+        <div class="subtitle-block">1.1 Respect</div>
+        <ul>
+          <li>Le respect est obligatoire envers tous les joueurs et les membres du staff.</li>
+          <li>Les insultes HRP, provocations, harcèlement, racisme, sexisme, homophobie ou toute autre discrimination sont interdits.</li>
+          <li>Toute menace IRL est passible d'un bannissement définitif.</li>
+        </ul>
+        <div class="subtitle-block">1.2 Comportement</div>
+        <ul>
+          <li>Ayez un comportement mature.</li>
+          <li>Le troll est interdit.</li>
+          <li>Le soundboard abusif est interdit.</li>
+          <li>Le spam est interdit.</li>
+          <li>Les pseudos inappropriés sont interdits.</li>
+        </ul>
       </div>
     </details>
 
+    <!-- 2. Règlement Discord -->
     <details>
       <summary>
         <div class="acc-title">
           <span class="acc-num">02</span>
-          <span class="acc-icon">🎭</span>
-          <span>Le Roleplay</span>
+          <span>Règlement Discord</span>
         </div>
         <span class="plus-icon">+</span>
       </summary>
       <div class="acc-content">
-        Privilégiez toujours la qualité des scènes au WinRP. Restez dans votre personnage en toutes circonstances (FearRP, PainRP).
+        <ul>
+          <li>Utilisez les salons appropriés.</li>
+          <li>Aucun spam ou flood.</li>
+          <li>Publicité interdite sans autorisation.</li>
+          <li>Les tickets sont le seul moyen de contester une sanction.</li>
+          <li>Les MP aux membres du staff sont interdits sauf autorisation.</li>
+        </ul>
       </div>
     </details>
 
+    <!-- 3. Règlement Roleplay -->
     <details>
       <summary>
         <div class="acc-title">
           <span class="acc-num">03</span>
-          <span class="acc-icon">🧠</span>
-          <span>Metagaming</span>
+          <span>Règlement Roleplay</span>
         </div>
         <span class="plus-icon">+</span>
       </summary>
       <div class="acc-content">
-        Utiliser des informations obtenues en HRP (Stream, Discord, etc.) dans le jeu est strictly interdit et sévèrement puni.
+        <p><strong>Le RP est obligatoire.</strong> Vous devez toujours rester dans votre personnage.</p>
+        <div class="subtitle-block">Interdictions RP :</div>
+        <ul>
+          <li>NoFear RP</li>
+          <li>NoPain RP</li>
+          <li>MetaGaming</li>
+          <li>PowerGaming</li>
+          <li>ForceRP</li>
+          <li>FreeKill</li>
+          <li>FreePunch</li>
+          <li>BunnyHop</li>
+          <li>ChickenRun</li>
+          <li>HRP Vocal</li>
+          <li>Combat Logging</li>
+          <li>ALT+F4 pour éviter une scène</li>
+          <li>Utilisation d'informations Discord en RP</li>
+          <li>Utilisation d'un logiciel de triche</li>
+        </ul>
       </div>
     </details>
 
+    <!-- 4. Définitions RP -->
     <details>
       <summary>
         <div class="acc-title">
           <span class="acc-num">04</span>
-          <span class="acc-icon">💪</span>
-          <span>Powergaming</span>
+          <span>Définitions RP</span>
         </div>
         <span class="plus-icon">+</span>
       </summary>
       <div class="acc-content">
-        Faire des actions irréalistes ou impossibles dans la vraie vie (ex: conduire une citadine à 200 km/h dans la montagne) est interdit.
+        <p><strong>FearRP :</strong> Votre personnage tient à sa vie.</p>
+        <p><strong>PainRP :</strong> Votre personnage ressent la douleur.</p>
+        <p><strong>MetaGaming :</strong> Utiliser une information obtenue hors RP.</p>
+        <p><strong>PowerGaming :</strong> Forcer une action sur un autre joueur.</p>
+        <p><strong>MassRP :</strong> La ville est vivante même si les PNJ ne sont pas présents.</p>
+        <p><strong>WinRP :</strong> Chercher uniquement à gagner une scène.</p>
+        <p><strong>Revenge Kill :</strong> Se venger après une mort RP.</p>
+        <p><strong>Car Kill :</strong> Utiliser volontairement un véhicule comme arme.</p>
       </div>
     </details>
 
+    <!-- 5. Mort RP -->
     <details>
       <summary>
         <div class="acc-title">
           <span class="acc-num">05</span>
-          <span class="acc-icon">🔫</span>
-          <span>Freekill (FK / RDM)</span>
+          <span>Mort RP</span>
         </div>
         <span class="plus-icon">+</span>
       </summary>
       <div class="acc-content">
-        Tuer ou attaquer un autre joueur sans aucune raison valable ou sans scène RP préalable est strictement interdit.
+        <p>Après une mort RP :</p>
+        <ul>
+          <li>Vous oubliez les événements ayant conduit à votre mort.</li>
+          <li>Vous ne pouvez pas revenir immédiatement sur la scène.</li>
+          <li>Les représailles immédiates sont interdites.</li>
+        </ul>
       </div>
     </details>
 
+    <!-- 6. Déconnexion -->
     <details>
       <summary>
         <div class="acc-title">
           <span class="acc-num">06</span>
-          <span class="acc-icon">🚗</span>
-          <span>Vehicle Death Match (VDM)</span>
+          <span>Déconnexion</span>
         </div>
         <span class="plus-icon">+</span>
       </summary>
       <div class="acc-content">
-        Utiliser son véhicule comme une arme pour écraser volontairement des joueurs sans raison valable est interdit.
+        <p>Interdiction de :</p>
+        <ul>
+          <li>Quitter pendant une scène.</li>
+          <li>Crash volontaire.</li>
+          <li>ALT+F4.</li>
+          <li>Déconnexion pour éviter une sanction.</li>
+        </ul>
       </div>
     </details>
 
+    <!-- 7. Scènes RP -->
     <details>
       <summary>
         <div class="acc-title">
           <span class="acc-num">07</span>
-          <span class="acc-icon">💀</span>
-          <span>New Life Rule (NLR)</span>
+          <span>Scènes RP</span>
         </div>
         <span class="plus-icon">+</span>
       </summary>
       <div class="acc-content">
-        En cas de mort/coma et réanimation à l'hôpital, vous oubliez la scène qui a mené à votre mort. Vous ne pouvez pas retourner sur la même scène.
+        <p>Chaque scène doit rester :</p>
+        <ul>
+          <li>Réaliste</li>
+          <li>Cohérente</li>
+          <li>Fair-play</li>
+        </ul>
+        <p style="margin-top: 10px;"><em>Le but est de créer du RP, pas de gagner.</em></p>
+      </div>
+    </details>
+
+    <!-- 8. Police / Gendarmerie / SAMU -->
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">08</span>
+          <span>Police / Gendarmerie / SAMU</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        <p>Les services publics doivent :</p>
+        <ul>
+          <li>Respecter le Code pénal.</li>
+          <li>Jouer sérieusement.</li>
+          <li>Éviter les abus de pouvoir.</li>
+          <li>Respecter leur hiérarchie.</li>
+        </ul>
+        <p style="margin-top: 10px;"><em>Les abus seront sanctionnés.</em></p>
+      </div>
+    </details>
+
+    <!-- 9. Illégal -->
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">09</span>
+          <span>Illégal</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        <p>Les groupes illégaux doivent :</p>
+        <ul>
+          <li>Respecter le FearRP.</li>
+          <li>Respecter le PainRP.</li>
+          <li>Respecter les sommations.</li>
+          <li>Ne pas braquer sans raison RP.</li>
+        </ul>
+        <p style="margin-top: 10px;"><em>Les prises d'otages doivent rester réalistes.</em></p>
+      </div>
+    </details>
+
+    <!-- 10. Braquages -->
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">10</span>
+          <span>Braquages</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        <p>Interdictions :</p>
+        <ul>
+          <li>Braquer les nouveaux joueurs.</li>
+          <li>Braquer sans raison RP.</li>
+          <li>Tuer sans sommation.</li>
+          <li>Braquer uniquement pour l'argent.</li>
+        </ul>
+      </div>
+    </details>
+
+    <!-- 11. Véhicules -->
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">11</span>
+          <span>Véhicules</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        <p>Interdiction de :</p>
+        <ul>
+          <li>CarKill volontaire.</li>
+          <li>Faire des cascades irréalistes.</li>
+          <li>Rouler comme dans GTA Online.</li>
+        </ul>
+      </div>
+    </details>
+
+    <!-- 12. Armes -->
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">12</span>
+          <span>Armes</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        <ul>
+          <li>Toujours privilégier le RP.</li>
+          <li>Les armes ne sont pas une solution à tous les problèmes.</li>
+          <li>Les sommations sont obligatoires lorsque la situation le permet.</li>
+        </ul>
+      </div>
+    </details>
+
+    <!-- 13. Nouveaux joueurs -->
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">13</span>
+          <span>Nouveaux joueurs</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        <p>Les nouveaux joueurs doivent être aidés.</p>
+        <p style="margin-top: 8px;"><em>Tout abus envers eux sera sanctionné.</em></p>
+      </div>
+    </details>
+
+    <!-- 14. Cheats -->
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">14</span>
+          <span>Cheats</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        <p>Tolérance zéro concernant :</p>
+        <ul>
+          <li>Mod Menu</li>
+          <li>Trigger</li>
+          <li>AimBot</li>
+          <li>ESP</li>
+          <li>NoClip</li>
+          <li>Duplication</li>
+          <li>Exploit</li>
+          <li>Bug Abuse</li>
+        </ul>
+        <div class="sanction-box">
+          <i class="fa-solid fa-circle-exclamation"></i> Sanction : Bannissement permanent.
+        </div>
+      </div>
+    </details>
+
+    <!-- 15. Staff -->
+    <details>
+      <summary>
+        <div class="acc-title">
+          <span class="acc-num">15</span>
+          <span>Staff</span>
+        </div>
+        <span class="plus-icon">+</span>
+      </summary>
+      <div class="acc-content">
+        <ul>
+          <li>Le staff possède toujours le dernier mot.</li>
+          <li>Toute contestation doit passer par un ticket Discord.</li>
+          <li>Le manque de respect envers le staff pourra entraîner une sanction.</li>
+        </ul>
       </div>
     </details>
 
