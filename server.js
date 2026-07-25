@@ -67,13 +67,13 @@ const discordEmbed = {
       },
       fields: [
         {
-          name: "─── IDENTIFICATION DISCORD ───",
-          value: "**Compte :** `" + discordTag + "`\n**Identifiant :** `" + discordId + "`",
+          name: "Identification Discord",
+          value: "• **Compte :** `" + discordTag + "`\n• **ID :** `" + discordId + "`",
           inline: true
         },
         {
-          name: "─── INFORMATIONS IRL ───",
-          value: "**Prénom :** " + prenom + "\n**Âge :** " + age + " ans",
+          name: "Informations IRL",
+          value: "• **Prénom :** " + prenom + "\n• **Âge :** " + age + " ans",
           inline: true
         },
         {
