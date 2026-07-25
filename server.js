@@ -70,10 +70,13 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
       return res.status(500).json({ error: "Salon Discord introuvable." });
     }
 
+    // Vérification si le service demandé est Community Manager
+    const isCM = service && service.toLowerCase().includes('community');
+
     // Création de l'Embed
     const embed = new EmbedBuilder()
       .setTitle(`DOSSIER DE CANDIDATURE — ${(service || 'GÉNÉRAL').toUpperCase()}`)
-      .setColor(0x1E222B)
+      .setColor(isCM ? 0xE52D48 : 0x1E222B)
       .setThumbnail(client.user.displayAvatarURL())
       .addFields(
         { name: "Identification Discord", value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId}\``, inline: true },
@@ -87,19 +90,30 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
       .setFooter({ text: "Urgence Lilloise — Système de Recrutement • Made by ymn_0ffcl" })
       .setTimestamp();
 
-    // Création des Boutons
+    if (isCM) {
+      embed.addFields({ name: "Statut du Dossier", value: "❌ **CANDIDATURE FERMÉE** (Poste indisponible)", inline: false });
+    }
+
+    // Création des Boutons (Désactivés si c'est CM)
     const buttons = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`accept_${discordId}`)
         .setLabel('Accepter')
-        .setStyle(ButtonStyle.Success),
+        .setStyle(ButtonStyle.Success)
+        .setDisabled(isCM),
       new ButtonBuilder()
         .setCustomId(`refuse_${discordId}`)
         .setLabel('Refuser')
         .setStyle(ButtonStyle.Danger)
+        .setDisabled(isCM)
     );
 
     await channel.send({ embeds: [embed], components: [buttons] });
+    
+    if (isCM) {
+      return res.status(400).json({ error: "Les recrutements pour le poste de Community Manager sont actuellement fermés." });
+    }
+
     return res.json({ success: true, message: "Candidature envoyée avec succès !" });
 
   } catch (err) {
@@ -125,7 +139,7 @@ client.on('interactionCreate', async (interaction) => {
           .setTitle("🪪 Recrutement")
           .setDescription("Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Acceptée.**\n\n🎉 Félicitation ! Votre candidature visant la modération de notre serveur a été acceptée !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.")
           .setColor(0x2ED573)
-          .setThumbnail("[https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp](https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp)")
+          .setThumbnail("https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp")
           .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
 
         await targetUser.send({ embeds: [acceptEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
@@ -168,7 +182,7 @@ client.on('interactionCreate', async (interaction) => {
           .setTitle("🪪 Recrutement")
           .setDescription(`Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Refusée.**\n\n❌ Bonjour. Nous vous informons que votre candidature pour le staff d'**Urgence Lilloise** n'a malheureusement **pas été retenue**.\n\n📌 **Raison du refus :**\n> *${reason}*\n\nMerci pour l'intérêt que vous portez à notre serveur.`)
           .setColor(0xE52D48)
-          .setThumbnail("[https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp](https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp)")
+          .setThumbnail("https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp")
           .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
 
         await targetUser.send({ embeds: [refuseEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
@@ -176,4 +190,18 @@ client.on('interactionCreate', async (interaction) => {
         originalEmbed.setColor(0xE52D48);
         originalEmbed.addFields(
           { name: "Statut du Dossier", value: `❌ **REFUSÉ** par ${staffUser.tag}`, inline: false },
-          { name: "
+          { name: "Raison du Refus", value: `\`\`\`\n${reason}\n\`\`\``, inline: false }
+        );
+
+        await interaction.editReply({ embeds: [originalEmbed], components: [] });
+      }
+    }
+
+  } catch (error) {
+    console.error("Erreur lors du traitement de l'interaction :", error);
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Serveur Web démarré sur le port ${PORT}`);
+});
