@@ -56,33 +56,60 @@ app.get('/recrutement', (req, res) => {
         error: null
     });
 });
-
 // Envoi vers Discord
 app.post('/recrutement', applyLimiter, async (req, res) => {
-    const { discordTag, age, service, experience, motivation } = req.body;
+  const { 
+    service, 
+    discordTag, 
+    discordId, 
+    prenom, 
+    age, 
+    ambition, 
+    motivation, 
+    experience, 
+    roleModerateur 
+  } = req.body;
 
-    if (!discordTag || !age || !service || !motivation) {
-        return res.status(400).json({ error: "Veuillez remplir tous les champs obligatoires." });
-    }
+  if (!discordTag || !discordId || !prenom || !age || !motivation) {
+    return res.status(400).json({ error: "Veuillez remplir tous les champs obligatoires." });
+  }
 
-    const discordEmbed = {
-        username: "Recrutement Urgence Lilloise",
-        avatar_url: "https://media.discordapp.net/attachments/1490687935509430293/1529274485063028807/logo.png",
-        embeds: [{
-            title: `📩 NOUVELLE CANDIDATURE — ${service.toUpperCase()}`,
-            color: 15019336,
-            fields: [
-                { name: "👤 Pseudo Discord", value: discordTag, inline: true },
-                { name: "🎂 Âge", value: `${age} ans`, inline: true },
-                { name: "💼 Poste visé", value: service, inline: true },
-                { name: "📜 Expérience", value: experience || "Aucune" },
-                { name: "📝 Motivations", value: motivation }
-            ],
-            footer: { text: "Urgence Lilloise Semi FivePD — Made by ymn_0ffcl" },
-            timestamp: new Date()
-        }]
-    };
+  const discordEmbed = {
+    username: "Recrutement Urgence Lilloise",
+    avatar_url: "https://images-ext-1.discordapp.net/external/8aFZTPSGx86d0OrinnNccclsx-HM782VKGeEWOrsJd0/%3Fsize%3D256/https/cdn.discordapp.com/icons/1525134348842696825/2d0ad7849aa0c15ab794b22a214a4154.png?format=webp&quality=lossless",
+    embeds: [{
+      title: `📩 NOUVELLE CANDIDATURE — ${(service || 'Non spécifié').toUpperCase()}`,
+      color: 15019336,
+      fields: [
+        { 
+          name: "📱 Informations : Discord", 
+          value: `**Pseudo :** ${discordTag}\n**ID :** ${discordId}`, 
+          inline: false 
+        },
+        { 
+          name: "👤 Informations : IRL", 
+          value: `**Prénom :** ${prenom}\n**Âge :** ${age} ans\n**Ambition :** ${ambition || 'Non renseignée'}`, 
+          inline: false 
+        },
+        { 
+          name: "🔥 Informations : Motivation", 
+          value: `**Pourquoi vous :**\n${motivation}\n\n**Expériences :**\n${experience || 'Aucune'}\n\n**Rôle d'un modérateur :**\n${roleModerateur || 'Non renseigné'}`, 
+          inline: false 
+        }
+      ],
+      footer: { text: "Urgence Lilloise Semi FivePD — Made by ymn_0ffcl" },
+      timestamp: new Date()
+    }]
+  };
 
+  try {
+    await axios.post(DISCORD_WEBHOOK_URL, discordEmbed);
+    res.json({ success: true, message: "Candidature envoyée avec succès !" });
+  } catch (err) {
+    console.error("Erreur d'envoi Discord:", err);
+    res.status(500).json({ error: "Erreur lors de l'envoi vers Discord." });
+  }
+});
     try {
         await axios.post(DISCORD_WEBHOOK_URL, discordEmbed);
         res.json({ success: true, message: "Candidature envoyée avec succès !" });
