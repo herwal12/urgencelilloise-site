@@ -56,7 +56,7 @@ client.on('messageCreate', async (message) => {
       new ButtonBuilder()
         .setLabel('Accéder au site / Postuler')
         .setStyle(ButtonStyle.Link)
-        .setURL('http://localhost:3000/recrutement') // Remplace par ton URL finale une fois en ligne
+        .setURL('https://urgencelilloise.onrender.com/recrutement')
         .setEmoji('🔗')
     );
 
