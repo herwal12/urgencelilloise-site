@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 // Variables d'environnement
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1526171548472446986';
+const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a66323f&is=6a64e0bf&hm=bee565cff709ceecf1239dc8d86da488d8638079ff8c78876a556d077616996f&=&format=webp&quality=lossless';
 
 // Initialisation du Bot Discord
 const client = new Client({
@@ -47,6 +48,7 @@ client.on('messageCreate', async (message) => {
     .setColor('#e52d48')
     .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
     .setDescription("Les recrutements sont actuellement **ouverts**.\n\nClique sur le bouton ci-dessous pour accéder au site et postuler directement !")
+    .setThumbnail(LOGO_URL)
     .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
 
   const row = new ActionRowBuilder()
@@ -106,7 +108,7 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
     const embed = new EmbedBuilder()
       .setTitle(`DOSSIER DE CANDIDATURE — ${(service || 'GÉNÉRAL').toUpperCase()}`)
       .setColor(isCM ? 0xE52D48 : 0x1E222B)
-      .setThumbnail(client.user.displayAvatarURL())
+      .setThumbnail(LOGO_URL)
       .addFields(
         { name: "Identification Discord", value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId}\``, inline: true },
         { name: "Informations IRL", value: `• **Prénom :** ${prenom}\n• **Âge :** ${age} ans`, inline: true },
