@@ -13,28 +13,23 @@
       font-family: 'Montserrat', 'Segoe UI', sans-serif;
     }
 
-   body {
-  background-color: #0a0a0c;
-  color: #ffffff;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
+    body {
+      background-color: #0a0a0c;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
 
-  /* BANNIÈRE A JOUR */
-  background-image: linear-gradient(rgba(10, 10, 12, 0.7), rgba(10, 10, 12, 0.8)),
-                    url('https://media.discordapp.net/attachments/1525200263173112018/1529295831117861006/wiwi.png?ex=6a655fbb&is=6a640e3b&hm=cf135396d2c321431e2cbf11e4793469e448ca210a13a972067362bd4e409c8e&=&format=webp&quality=lossless');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+      /* BANNIÈRE */
+      background-image: linear-gradient(rgba(10, 10, 12, 0.7), rgba(10, 10, 12, 0.8)),
+                        url('https://media.discordapp.net/attachments/1525200263173112018/1529295831117861006/wiwi.png?ex=6a655fbb&is=6a640e3b&hm=cf135396d2c321431e2cbf11e4793469e448ca210a13a972067362bd4e409c8e&=&format=webp&quality=lossless');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
     }
-<header>
-    <!-- ton code header -->
-  </header>
 
-  <!-- Colle ça ici -->
-  <div class="french-flag-bar"></div>
     /* HEADER */
     header {
       padding: 25px 60px;
@@ -45,12 +40,16 @@
       background: rgba(10, 10, 12, 0.5);
       backdrop-filter: blur(8px);
     }
-.french-flag-bar {
+
+    /* LISERÉ DRAPEAU FRANÇAIS */
+    .french-flag-bar {
       height: 4px;
       width: 100%;
       background: linear-gradient(90deg, #0055A5 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #EF4135 66.66%);
       box-shadow: 0 0 10px rgba(229, 45, 72, 0.3);
+      z-index: 10;
     }
+
     .logo {
       font-size: 1.4rem;
       font-weight: 900;
@@ -329,20 +328,22 @@
 
   <!-- HEADER -->
   <header>
-   <a href="/" class="logo">
-  <img src="https://images-ext-1.discordapp.net/external/8aFZTPSGx86d0OrinnNccclsx-HM782VKGeEWOrsJd0/%3Fsize%3D256/https/cdn.discordapp.com/icons/1525134348842696825/2d0ad7849aa0c15ab794b22a214a4154.png?format=webp&quality=lossless" alt="Logo Urgence Lilloise">
-  Urgence Lilloise <span>Semi FivePD</span>
-</a>
+    <a href="/" class="logo">
+      <img src="https://images-ext-1.discordapp.net/external/8aFZTPSGx86d0OrinnNccclsx-HM782VKGeEWOrsJd0/%3Fsize%3D256/https/cdn.discordapp.com/icons/1525134348842696825/2d0ad7849aa0c15ab794b22a214a4154.png?format=webp&quality=lossless" alt="Logo Urgence Lilloise">
+      Urgence Lilloise <span>Semi FivePD</span>
     </a>
-<nav>
-  <a href="/" class="active">Accueil</a>
-  <a href="/recrutement">Recrutement</a>
-  <a href="/boutique">Boutique</a>
-  <a href="https://discord.gg/votre-lien" target="_blank" class="btn-discord">
-    <i class="fa-brands fa-discord"></i> Discord
-  </a>
-</nav>
+    <nav>
+      <a href="/" class="active">Accueil</a>
+      <a href="/recrutement">Recrutement</a>
+      <a href="/boutique">Boutique</a>
+      <a href="https://discord.gg/votre-lien" target="_blank" class="btn-discord">
+        <i class="fa-brands fa-discord"></i> Discord
+      </a>
+    </nav>
   </header>
+
+  <!-- LISERÉ DRAPEAU FRANÇAIS -->
+  <div class="french-flag-bar"></div>
 
   <!-- HERO SECTION -->
   <main class="hero">
@@ -366,13 +367,12 @@
     <h2>Métiers & Factions</h2>
 
     <div class="carousel-track">
-      
       <!-- SÉRIE 1 -->
       <div class="job-card">
         <div class="job-overlay">
           <span class="job-badge samu">Urgences Médicales</span>
           <h3>SAMU</h3>
-          <p>Intervenez sur les urgences vitale et prodiguez les premiers soins sur le terrain.</p>
+          <p>Intervenez sur les urgences vitales et prodiguez les premiers soins sur le terrain.</p>
         </div>
       </div>
 
@@ -396,7 +396,7 @@
         <div class="job-overlay">
           <span class="job-badge police">Forces de l'ordre</span>
           <h3>Gendarmerie</h3>
-          <p>Patrouillez sur les axes routiers et sécurisez l'ensemble du territoire périalpin/rural.</p>
+          <p>Patrouillez sur les axes routiers et sécurisez l'ensemble du territoire.</p>
         </div>
       </div>
 
@@ -412,16 +412,16 @@
         <div class="job-overlay">
           <span class="job-badge prot">Secourisme</span>
           <h3>Protection Civile</h3>
-          <p>Soutenez les populations, gérez les dispositifs prévisionnels de secours et d'aide.</p>
+          <p>Soutenez les populations, gérez les dispositifs prévisionnels de secours.</p>
         </div>
       </div>
 
-      <!-- SÉRIE 2 (Duplication exacte pour boucle infinie) -->
+      <!-- SÉRIE 2 (Duplication pour boucle infinie du carrousel) -->
       <div class="job-card">
         <div class="job-overlay">
           <span class="job-badge samu">Urgences Médicales</span>
           <h3>SAMU</h3>
-          <p>Intervenez sur les urgences vitale et prodiguez les premiers soins sur le terrain.</p>
+          <p>Intervenez sur les urgences vitales et prodiguez les premiers soins sur le terrain.</p>
         </div>
       </div>
 
@@ -445,7 +445,7 @@
         <div class="job-overlay">
           <span class="job-badge police">Forces de l'ordre</span>
           <h3>Gendarmerie</h3>
-          <p>Patrouillez sur les axes routiers et sécurisez l'ensemble du territoire périalpin/rural.</p>
+          <p>Patrouillez sur les axes routiers et sécurisez l'ensemble du territoire.</p>
         </div>
       </div>
 
@@ -461,10 +461,9 @@
         <div class="job-overlay">
           <span class="job-badge prot">Secourisme</span>
           <h3>Protection Civile</h3>
-          <p>Soutenez les populations, gérez les dispositifs prévisionnels de secours et d'aide.</p>
+          <p>Soutenez les populations, gérez les dispositifs prévisionnels de secours.</p>
         </div>
       </div>
-
     </div>
   </section>
 
