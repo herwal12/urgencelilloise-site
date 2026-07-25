@@ -252,6 +252,12 @@
       border-color: #e52d48;
     }
 
+    /* Style pour les images de fond des cartes */
+    .job-card.has-bg {
+      background-size: cover;
+      background-position: center;
+    }
+
     .job-overlay {
       position: absolute;
       inset: 0;
@@ -259,6 +265,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+      background: linear-gradient(to top, rgba(10, 10, 12, 0.95) 20%, rgba(10, 10, 12, 0.4) 70%, transparent 100%);
     }
 
     .job-badge {
@@ -376,7 +383,8 @@
         </div>
       </div>
 
-      <div class="job-card">
+      <!-- Police Nationale avec image -->
+      <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1490687935509430293/1530424728664408174/image.png?ex=6a662f59&is=6a64ddd9&hm=742189568f00fbba3ae5efedf5bfcc3f6f8a38c97dc91e5d88233efeeb6f7683&=&format=webp&quality=lossless');">
         <div class="job-overlay">
           <span class="job-badge police">Forces de l'ordre</span>
           <h3>Police Nationale</h3>
@@ -384,7 +392,8 @@
         </div>
       </div>
 
-      <div class="job-card">
+      <!-- Police Municipale avec image -->
+      <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1525156248444469329/1528442803607044207/Capture_decran_2026-07-19_184349.png?ex=6a6639c9&is=6a64e849&hm=79ed09da875f570a4ec189b0b8a9f665c0ba9dc77b4971dfd942574c6e12d425&=&format=webp&quality=lossless');">
         <div class="job-overlay">
           <span class="job-badge police">Proximité</span>
           <h3>Police Municipale</h3>
@@ -425,7 +434,8 @@
         </div>
       </div>
 
-      <div class="job-card">
+      <!-- Police Nationale avec image (Doublon) -->
+      <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1490687935509430293/1530424728664408174/image.png?ex=6a662f59&is=6a64ddd9&hm=742189568f00fbba3ae5efedf5bfcc3f6f8a38c97dc91e5d88233efeeb6f7683&=&format=webp&quality=lossless');">
         <div class="job-overlay">
           <span class="job-badge police">Forces de l'ordre</span>
           <h3>Police Nationale</h3>
@@ -433,7 +443,8 @@
         </div>
       </div>
 
-      <div class="job-card">
+      <!-- Police Municipale avec image (Doublon) -->
+      <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1525156248444469329/1528442803607044207/Capture_decran_2026-07-19_184349.png?ex=6a6639c9&is=6a64e849&hm=79ed09da875f570a4ec189b0b8a9f665c0ba9dc77b4971dfd942574c6e12d425&=&format=webp&quality=lossless');">
         <div class="job-overlay">
           <span class="job-badge police">Proximité</span>
           <h3>Police Municipale</h3>
