@@ -18,14 +18,15 @@ const PORT = process.env.PORT || 3000;
 
 // Variables d'environnement
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-const RECRUTEMENT_CHANNEL_ID = process.env.RECRUTEMENT_CHANNEL_ID;
+const RECRUTEMENT_CHANNEL_ID = '1526171548472446986';
 
 // Initialisation du Bot Discord
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
   ]
 });
 
@@ -36,6 +37,34 @@ client.login(DISCORD_BOT_TOKEN).catch(err => {
 
 client.once('ready', () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
+});
+
+// Commande pour envoyer le panel de recrutement dans le salon dédié
+client.on('messageCreate', async (message) => {
+  if (message.author.bot || message.content !== '!panel') return;
+
+  const embed = new EmbedBuilder()
+    .setColor('#e52d48')
+    .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
+    .setDescription("Les recrutements sont actuellement **ouverts**.\n\nClique sur le bouton ci-dessous pour accéder au site et postuler directement !")
+    .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
+
+  const row = new ActionRowBuilder()
+    .addComponents(
+      new ButtonBuilder()
+        .setLabel('Accéder au site / Postuler')
+        .setStyle(ButtonStyle.Link)
+        .setURL('http://localhost:3000/recrutement') // Remplace par ton URL finale une fois en ligne
+        .setEmoji('🔗')
+    );
+
+  const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
+  if (channel) {
+    await channel.send({ embeds: [embed], components: [row] });
+    message.reply('✅ Panel de recrutement envoyé avec succès !');
+  } else {
+    message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
+  }
 });
 
 // Configuration EJS & Middlewares
