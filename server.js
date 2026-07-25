@@ -87,6 +87,7 @@ const applyLimiter = rateLimit({
 app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
+app.get('/reglement', (req, res) => res.render('reglement')); // 👈 Ajouté ici pour régler l'erreur Cannot GET /reglement
 
 // Traitement du formulaire de recrutement (Bloqué car fermés)
 app.post('/recrutement', applyLimiter, async (req, res) => {
