@@ -20,7 +20,7 @@
       display: flex;
       flex-direction: column;
       background-image: linear-gradient(rgba(10, 10, 12, 0.7), rgba(10, 10, 12, 0.8)),
-                        url('https://media.discordapp.net/attachments/1525200263173112018/1529295831117861006/wiwi.png?ex=6a616b3b&is=6a6019bb&hm=1bfb5328689f71af47ca2d09fddadda14f7bac737b5ae8019ea12f053690c108&=&format=webp&quality=lossless');
+                        url('https://media.discordapp.net/attachments/1525200263173112018/1529295831117861006/wiwi.png?ex=6a655fbb&is=6a640e3b&hm=cf135396d2c321431e2cbf11e4793469e448ca210a13a972067362bd4e409c8e&=&format=webp&quality=lossless');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -105,7 +105,7 @@
       line-height: 1.5;
     }
 
-    /* GRID DES POSTES (2 COLONNES) */
+    /* GRID DES POSTES */
     .jobs-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -174,7 +174,7 @@
       color: #000000;
     }
 
-    /* MODAL POPUP */
+    /* MODAL POPUP (FORMULAIRE) */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -184,14 +184,17 @@
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      padding: 20px;
     }
 
     .modal-content {
       background: #14151f;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 16px;
-      width: 90%;
-      max-width: 550px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
       padding: 30px;
       position: relative;
     }
@@ -200,24 +203,39 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 15px;
     }
 
     .modal-header h2 {
       font-size: 1.4rem;
       font-weight: 800;
+      color: #ffffff;
     }
 
     .close-btn {
       background: none;
       border: none;
       color: #a0a0a0;
-      font-size: 1.4rem;
+      font-size: 1.5rem;
       cursor: pointer;
     }
 
+    .form-section-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #e52d48;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 20px 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .form-group {
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .form-group label {
@@ -255,6 +273,7 @@
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 1px;
+      margin-top: 20px;
     }
 
     .btn-submit:hover {
@@ -277,14 +296,14 @@
   <!-- HEADER -->
   <header>
     <a href="/" class="logo">
-  <img src="https://images-ext-1.discordapp.net/external/8aFZTPSGx86d0OrinnNccclsx-HM782VKGeEWOrsJd0/%3Fsize%3D256/https/cdn.discordapp.com/icons/1525134348842696825/2d0ad7849aa0c15ab794b22a214a4154.png?format=webp&quality=lossless" alt="Logo Urgence Lilloise">
-  Urgence Lilloise <span>Semi FivePD</span>
+      <img src="https://images-ext-1.discordapp.net/external/8aFZTPSGx86d0OrinnNccclsx-HM782VKGeEWOrsJd0/%3Fsize%3D256/https/cdn.discordapp.com/icons/1525134348842696825/2d0ad7849aa0c15ab794b22a214a4154.png?format=webp&quality=lossless" alt="Logo Urgence Lilloise">
+      Urgence Lilloise <span>Semi FivePD</span>
     </a>
- <nav>
-  <a href="/">Accueil</a>
-  <a href="/recrutement" class="active">Recrutement</a>
-  <a href="/boutique">Boutique</a>
-</nav>
+    <nav>
+      <a href="/">Accueil</a>
+      <a href="/recrutement" class="active">Recrutement</a>
+      <a href="/boutique">Boutique</a>
+    </nav>
   </header>
 
   <!-- CONTENU -->
@@ -322,7 +341,7 @@
     </div>
   </div>
 
-  <!-- MODAL FORMULAIRE -->
+  <!-- MODAL FORMULAIRE POPUP -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal-content">
       <div class="modal-header">
@@ -332,24 +351,53 @@
       <form id="applyForm">
         <input type="hidden" id="roleInput" name="service">
 
+        <!-- SECTION 1 : DISCORD -->
+        <div class="form-section-title"><i class="fa-brands fa-discord"></i> Informations : Discord</div>
+        
         <div class="form-group">
-          <label>Pseudo Discord (ex: ymn_0ffcl)</label>
+          <label>Pseudo Discord :</label>
           <input type="text" name="discordTag" required placeholder="Ex: ymn_0ffcl">
         </div>
 
         <div class="form-group">
-          <label>Votre Âge</label>
+          <label>Identifiant Discord (ID Utilisateur) :</label>
+          <input type="text" name="discordId" required placeholder="Ex: 1525200263173112018">
+        </div>
+
+        <!-- SECTION 2 : IRL -->
+        <div class="form-section-title"><i class="fa-solid fa-user"></i> Informations : IRL</div>
+
+        <div class="form-group">
+          <label>Prénom :</label>
+          <input type="text" name="prenom" required placeholder="Votre prénom...">
+        </div>
+
+        <div class="form-group">
+          <label>Âge :</label>
           <input type="number" name="age" required placeholder="Ex: 18">
         </div>
 
         <div class="form-group">
-          <label>Vos expériences (serveurs RP, staff...)</label>
-          <textarea name="experience" rows="3" placeholder="Décrivez vos expériences précédentes..."></textarea>
+          <label>Ambition :</label>
+          <textarea name="ambition" rows="2" required placeholder="Quelles sont vos ambitions au sein de la communauté ?"></textarea>
+        </div>
+
+        <!-- SECTION 3 : MOTIVATION -->
+        <div class="form-section-title"><i class="fa-solid fa-fire"></i> Informations : Motivation</div>
+
+        <div class="form-group">
+          <label>Pourquoi vous et pas un autre ?</label>
+          <textarea name="motivation" rows="3" required placeholder="Exposez vos motivations et vos atouts..."></textarea>
         </div>
 
         <div class="form-group">
-          <label>Pourquoi vous et pas un autre ? (Motivations)</label>
-          <textarea name="motivation" rows="4" required placeholder="Vos motivations..."></textarea>
+          <label>Vos expériences (si vous en avez, citez-les) :</label>
+          <textarea name="experience" rows="3" placeholder="Vos expériences passées en modération / administration..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Dans vos mots, en quoi consiste le rôle d'un modérateur ?</label>
+          <textarea name="roleModerateur" rows="3" required placeholder="Expliquez votre vision du rôle de modérateur..."></textarea>
         </div>
 
         <button type="submit" class="btn-submit">Envoyer ma candidature</button>
