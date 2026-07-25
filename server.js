@@ -137,8 +137,15 @@ client.on('interactionCreate', async (interaction) => {
       originalEmbed.addFields({ name: "Statut du Dossier", value: `✅ **ACCEPTÉ** par ${staffUser.tag}`, inline: false });
 
     } else if (action === 'refuse') {
+      const refuseEmbed = new EmbedBuilder()
+        .setTitle("🪪 Recrutement")
+        .setDescription("Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Refusée.**\n\nBonjour. Nous vous informons que votre candidature pour le staff d'**Urgence Lilloise** n'a malheureusement **pas été retenue**.\nMerci pour l'intérêt que vous portez à notre serveur.")
+        .setColor(0xE52D48) // Rouge
+        .setThumbnail("https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp")
+        .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
+
       await targetUser.send({
-        content: "Bonjour. Nous vous informons que votre candidature pour le staff d'**Urgence Lilloise** n'a malheureusement **pas été retenue**.\nMerci pour l'intérêt que vous portez à notre serveur."
+        embeds: [refuseEmbed]
       }).catch(() => console.log("Impossible d'envoyer un MP au membre (MP fermés)."));
 
       originalEmbed.setColor(0xE52D48); // Rouge
