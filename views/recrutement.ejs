@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recrutement — Urgence Lilloise</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
   <style>
     * {
       margin: 0;
@@ -409,7 +409,7 @@
     <p>&copy; 2026 Urgence Lilloise. Tous droits réservés. — Made by <span>ymn_0ffcl</span></p>
   </footer>
 
-  <script>
+<script>
     function openModal(roleName) {
       document.getElementById('modalTitle').innerText = "Postuler au poste de " + roleName;
       document.getElementById('roleInput').value = roleName;
@@ -426,18 +426,23 @@
       const formData = new FormData(this);
       const data = Object.fromEntries(formData.entries());
 
-      const response = await fetch('/recrutement', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      try {
+        const response = await fetch('/recrutement', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
 
-      if(response.ok) {
-        alert("✅ Candidature envoyée avec succès au staff !");
-        closeModal();
-        this.reset();
-      } else {
-        alert("❌ Erreur lors de l'envoi de la candidature.");
+        if (response.ok) {
+          alert("✅ Candidature envoyée avec succès au staff !");
+          closeModal();
+          this.reset();
+        } else {
+          const errData = await response.json();
+          alert("❌ " + (errData.error || "Erreur lors de l'envoi de la candidature."));
+        }
+      } catch (err) {
+        alert("❌ Impossible de contacter le serveur.");
       }
     });
   </script>
