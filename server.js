@@ -7,6 +7,9 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// URL Webhook Discord (utilise la variable d'environnement si disponible, sinon l'URL directe)
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1530410092753850541/lIfyUFXJlvChEaEaK_5W85P-gVU_eBypFNKBTuoWWyKItS9w8N49RGBm0iNJhX4kD6EFI";
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -40,10 +43,12 @@ app.get('/', async (req, res) => {
         discordUrl: process.env.DISCORD_INVITE_URL 
     });
 });
+
 // Page de règlement
 app.get('/reglement', (req, res) => {
-  res.render('reglement');
+    res.render('reglement');
 });
+
 // Page de recrutement
 app.get('/recrutement', (req, res) => {
     res.render('recrutement', { 
@@ -66,6 +71,8 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
     }
 
     const discordEmbed = {
+        username: "Recrutement Urgence Lilloise",
+        avatar_url: "https://media.discordapp.net/attachments/1490687935509430293/1529274485063028807/logo.png",
         embeds: [{
             title: "🚨 NOUVELLE CANDIDATURE REÇUE",
             color: service.includes('Police') ? 3447003 : (service.includes('Pompiers') ? 15158332 : 15844367),
@@ -76,19 +83,20 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
                 { name: "📜 Expérience", value: experience || "Aucune" },
                 { name: "📝 Motivations", value: motivation }
             ],
-            footer: { text: "Urgence Lilloise RP - Recrutement Web" },
+            footer: { text: "Urgence Lilloise Semi FivePD — Made by ymn_0ffcl" },
             timestamp: new Date()
         }]
     };
 
     try {
-        await axios.post(process.env.DISCORD_WEBHOOK_URL, discordEmbed);
+        await axios.post(DISCORD_WEBHOOK_URL, discordEmbed);
         res.render('recrutement', {
             discordUrl: process.env.DISCORD_INVITE_URL,
             message: "Candidature envoyée avec succès au staff !",
             error: null
         });
     } catch (err) {
+        console.error("Erreur d'envoi Discord:", err);
         res.render('recrutement', {
             discordUrl: process.env.DISCORD_INVITE_URL,
             message: null,
