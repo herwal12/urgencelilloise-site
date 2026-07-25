@@ -58,8 +58,8 @@
 
     /* CONTENU RECRUTEMENT */
     .container {
-      max-width: 1200px;
-      margin: 40px auto;
+      max-width: 1000px;
+      margin: 50px auto;
       padding: 0 20px;
       flex: 1;
     }
@@ -69,32 +69,32 @@
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 16px;
-      padding: 35px;
+      padding: 40px;
     }
 
     .header-box {
       display: flex;
       gap: 20px;
       align-items: flex-start;
-      margin-bottom: 30px;
+      margin-bottom: 35px;
     }
 
     .icon-badge {
       background: rgba(229, 45, 72, 0.15);
       border: 1px solid rgba(229, 45, 72, 0.3);
       color: #e52d48;
-      width: 55px;
-      height: 55px;
-      border-radius: 12px;
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       flex-shrink: 0;
     }
 
     .header-info h1 {
-      font-size: 1.8rem;
+      font-size: 1.9rem;
       font-weight: 800;
       margin-bottom: 8px;
     }
@@ -105,80 +105,81 @@
       line-height: 1.5;
     }
 
-    /* GRID DES POSTES */
+    /* GRID DES POSTES (2 COLONNES) */
     .jobs-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 25px;
     }
 
     .job-card {
       background: #14151f;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
-      padding: 25px;
+      border-radius: 16px;
+      padding: 30px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: transform 0.2s, border-color 0.2s;
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
     }
 
     .job-card:hover {
       transform: translateY(-5px);
       border-color: rgba(229, 45, 72, 0.5);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
 
     .job-card-icon {
       background: rgba(229, 45, 72, 0.1);
       color: #e52d48;
-      width: 45px;
-      height: 45px;
-      border-radius: 10px;
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
-      margin-bottom: 15px;
+      font-size: 1.3rem;
+      margin-bottom: 20px;
     }
 
     .job-card h3 {
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       font-weight: 700;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .job-card p {
       color: #8f92a1;
-      font-size: 0.85rem;
-      line-height: 1.4;
-      margin-bottom: 20px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 25px;
     }
 
     .btn-apply {
       background: rgba(46, 213, 115, 0.1);
       color: #2ed573;
       border: 1px solid rgba(46, 213, 115, 0.3);
-      padding: 10px 15px;
-      border-radius: 8px;
-      font-size: 0.85rem;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 0.9rem;
       font-weight: 700;
       cursor: pointer;
       text-align: center;
-      transition: background 0.2s, transform 0.2s;
+      transition: background 0.2s, color 0.2s;
       width: 100%;
     }
 
     .btn-apply:hover {
       background: #2ed573;
-      color: #000;
+      color: #000000;
     }
 
     /* MODAL POPUP */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(5px);
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(6px);
       display: none;
       justify-content: center;
       align-items: center;
@@ -293,60 +294,30 @@
       <div class="header-box">
         <div class="icon-badge"><i class="fa-solid fa-shield-halved"></i></div>
         <div class="header-info">
-          <h1>Rejoindre l'équipe du staff</h1>
-          <p>Modération, assistance, animation, vidéo : plusieurs branches composent le staff d'Urgence Lilloise. Postule ci-dessous pour rejoindre l'équipe.</p>
+          <h1>Rejoindre l'équipe d'Urgence Lilloise</h1>
+          <p>Nous recherchons des personnes motivées pour maintenir la qualité du Roleplay et faire rayonner le serveur. Postule dès maintenant ci-dessous !</p>
         </div>
       </div>
 
       <div class="jobs-grid">
-        <!-- CARTE 1 -->
+        <!-- CARTE 1 : MODÉRATION -->
         <div class="job-card">
           <div>
-            <div class="job-card-icon"><i class="fa-solid fa-bullhorn"></i></div>
-            <h3>Animateur</h3>
-            <p>Organise des événements et anime la communauté du serveur au quotidien.</p>
+            <div class="job-card-icon"><i class="fa-solid fa-user-shield"></i></div>
+            <h3>Modération</h3>
+            <p>Veille au bon déroulement du serveur en jeu et sur Discord. Assure le respect du règlement, gère la prise en charge des tickets et garantit une expérience RP fluide et de qualité pour tous les joueurs.</p>
           </div>
-          <button class="btn-apply" onclick="openModal('Animateur')">Recrutement ouvert — postuler</button>
+          <button class="btn-apply" onclick="openModal('Modération')">Recrutement ouvert — postuler</button>
         </div>
 
-        <!-- CARTE 2 -->
+        <!-- CARTE 2 : COMMUNITY MANAGER -->
         <div class="job-card">
           <div>
             <div class="job-card-icon"><i class="fa-solid fa-headset"></i></div>
-            <h3>Assistant</h3>
-            <p>Rejoins la branche assistance : accueil des nouveaux, tickets et aide en jeu.</p>
-          </div>
-          <button class="btn-apply" onclick="openModal('Assistant')">Recrutement ouvert — postuler</button>
-        </div>
-
-        <!-- CARTE 3 -->
-        <div class="job-card">
-          <div>
-            <div class="job-card-icon"><i class="fa-solid fa-video"></i></div>
-            <h3>Cameraman / Vidéaste</h3>
-            <p>Filme les scènes RP, réalise des bandes-annonces et valorise le serveur.</p>
-          </div>
-          <button class="btn-apply" onclick="openModal('Cameraman')">Recrutement ouvert — postuler</button>
-        </div>
-
-        <!-- CARTE 4 -->
-        <div class="job-card">
-          <div>
-            <div class="job-card-icon"><i class="fa-solid fa-comments"></i></div>
             <h3>Community Manager</h3>
-            <p>Gère les réseaux sociaux et la communication officielle d'Urgence Lilloise.</p>
+            <p>Incarne et fais rayonner Urgence Lilloise ! Représente le serveur à travers des lives, la création de contenus (TikTok/YouTube) et l'animation active de nos réseaux sociaux et de la communauté.</p>
           </div>
           <button class="btn-apply" onclick="openModal('Community Manager')">Recrutement ouvert — postuler</button>
-        </div>
-
-        <!-- CARTE 5 -->
-        <div class="job-card">
-          <div>
-            <div class="job-card-icon"><i class="fa-solid fa-clapperboard"></i></div>
-            <h3>Monteur</h3>
-            <p>Monte les vidéos officielles et contenus TikTok / YouTube pour le serveur.</p>
-          </div>
-          <button class="btn-apply" onclick="openModal('Monteur')">Recrutement ouvert — postuler</button>
         </div>
       </div>
     </div>
