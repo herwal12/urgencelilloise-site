@@ -205,14 +205,38 @@
       border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
+    .jobs-header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-left: 10%;
+      padding-right: 10%;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
     .jobs-section h2 {
       font-size: 1.6rem;
       font-weight: 900;
       text-transform: uppercase;
-      margin-bottom: 25px;
       color: #ffffff;
-      padding-left: 10%;
       letter-spacing: 1px;
+    }
+
+    .jobs-notice {
+      color: #e52d48;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(229, 45, 72, 0.1);
+      border: 1px solid rgba(229, 45, 72, 0.3);
+      padding: 5px 12px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .carousel-track {
@@ -371,7 +395,12 @@
 
   <!-- SECTION CARROUSEL MÉTIERS -->
   <section class="jobs-section">
-    <h2>Métiers & Factions</h2>
+    <div class="jobs-header-container">
+      <h2>Métiers & Factions</h2>
+      <div class="jobs-notice">
+        <i class="fa-solid fa-triangle-exclamation"></i> Visuels en cours de finalisation
+      </div>
+    </div>
 
     <div class="carousel-track">
       <!-- SÉRIE 1 -->
@@ -464,7 +493,7 @@
       <!-- Illégal avec image (Doublon) -->
       <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1316456777214332948/1527687288794910881/BH7UwWz52EsA.webp?ex=6a661d28&is=6a64cba8&hm=09cf296b4d5b715f01c8f787f85ed1be35a7778e1e01991d50b14dc261b37f6d&=&format=webp');">
         <div class="job-overlay">
-          <span class="job-badge">Illégal</span>
+          <span class="job-badge">Illégal</h3>
           <h3>Illégal</h3>
           <p>Développez vos réseaux clandestins, trafics et affaires hors-la-loi.</p>
         </div>
