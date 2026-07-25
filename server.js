@@ -122,9 +122,16 @@ client.on('interactionCreate', async (interaction) => {
     const targetUser = await client.users.fetch(targetUserId);
 
     if (action === 'accept') {
+      const acceptEmbed = new EmbedBuilder()
+        .setAuthor({ name: "Urgence Lilloise — Recrutement", iconURL: client.user.displayAvatarURL() })
+        .setDescription("🎉 **Félicitation !** Votre candidature visant la modération de notre serveur a été accepté !\n\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.")
+        .setColor(0x2ED573) // Vert
+        .setImage("https://media.discordapp.net/attachments/1526780469167919134/1530437520578449579/kdxd8q1.png?ex=6a659283&is=6a644103&hm=42f32b04d0136ad3800565934cfd6e46c5f394e15ca2abe7dc2317e41caf54ad&=&format=webp&quality=lossless")
+        .setFooter({ text: "Urgence Lilloise • Tous droits réservés" })
+        .setTimestamp();
+
       await targetUser.send({
-        content: "🎉 Félicitation ! Votre candidature visant la modération de notre serveur a été accepté !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.",
-        files: ["https://media.discordapp.net/attachments/1526780469167919134/1530437520578449579/kdxd8q1.png?ex=6a659283&is=6a644103&hm=42f32b04d0136ad3800565934cfd6e46c5f394e15ca2abe7dc2317e41caf54ad&=&format=webp&quality=lossless"]
+        embeds: [acceptEmbed]
       }).catch(() => console.log("Impossible d'envoyer un MP au membre (MP fermés)."));
 
       originalEmbed.setColor(0x2ED573); // Vert
