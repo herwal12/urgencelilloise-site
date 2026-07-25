@@ -123,12 +123,11 @@ client.on('interactionCreate', async (interaction) => {
 
     if (action === 'accept') {
       const acceptEmbed = new EmbedBuilder()
-        .setAuthor({ name: "Urgence Lilloise — Recrutement", iconURL: client.user.displayAvatarURL() })
-        .setDescription("🎉 **Félicitation !** Votre candidature visant la modération de notre serveur a été accepté !\n\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.")
+        .setTitle("🪪 Recrutement")
+        .setDescription("Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Acceptée.**\n\n🎉 Félicitation ! Votre candidature visant la modération de notre serveur a été acceptée !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.")
         .setColor(0x2ED573) // Vert
-        .setImage("https://media.discordapp.net/attachments/1526780469167919134/1530437520578449579/kdxd8q1.png?ex=6a659283&is=6a644103&hm=42f32b04d0136ad3800565934cfd6e46c5f394e15ca2abe7dc2317e41caf54ad&=&format=webp&quality=lossless")
-        .setFooter({ text: "Urgence Lilloise • Tous droits réservés" })
-        .setTimestamp();
+        .setThumbnail("https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp")
+        .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
 
       await targetUser.send({
         embeds: [acceptEmbed]
