@@ -123,8 +123,7 @@ client.on('interactionCreate', async (interaction) => {
 
     if (action === 'accept') {
       await targetUser.send({
-        content: `🎉 **Félicitations !** Votre candidature pour rejoindre le staff d'**Urgence Lilloise** a été **ACCEPTÉE** !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie **Direction**, afin de poursuivre les formalités. Merci de ne faire **aucune mention (@)** dans votre ticket.
-.`
+        content: `Félicitation ! Votre candidature visant la modération de notre serveur a été accepté !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.`
       }).catch(() => console.log("Impossible d'envoyer un MP au membre (MP fermés)."));
 
       originalEmbed.setColor(0x2ED573); // Vert
@@ -139,11 +138,16 @@ client.on('interactionCreate', async (interaction) => {
       originalEmbed.addFields({ name: "Statut du Dossier", value: `❌ **REFUSÉ** par ${staffUser.tag}`, inline: false });
     }
 
-    // Mise à jour du message sur Discord (désactivation des boutons pour éviter le double clic)
+    // Mise à jour du message sur Discord (désactivation des boutons)
     await interaction.editReply({
       embeds: [originalEmbed],
       components: []
     });
+
+  } catch (error) {
+    console.error("Erreur lors du traitement du bouton :", error);
+  }
+});
 
   } catch (error) {
     console.error("Erreur lors du traitement du bouton :", error);
