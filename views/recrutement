@@ -359,7 +359,7 @@
         <button class="close-btn" onclick="closeModal()">&times;</button>
       </div>
       <form id="applyForm">
-        <input type="hidden" id="roleInput" name="role">
+        <input type="hidden" id="roleInput" name="service">
 
         <div class="form-group">
           <label>Pseudo Discord (ex: ymn_0ffcl)</label>
@@ -373,7 +373,7 @@
 
         <div class="form-group">
           <label>Vos expériences (serveurs RP, staff...)</label>
-          <textarea name="experience" rows="3" required placeholder="Décrivez vos expériences précédentes..."></textarea>
+          <textarea name="experience" rows="3" placeholder="Décrivez vos expériences précédentes..."></textarea>
         </div>
 
         <div class="form-group">
@@ -407,19 +407,18 @@
       const formData = new FormData(this);
       const data = Object.fromEntries(formData.entries());
 
-      const response = await fetch('/postuler', {
+      const response = await fetch('/recrutement', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
 
-      const result = await response.json();
-      if(result.success) {
-        alert("✅ " + result.message);
+      if(response.ok) {
+        alert("✅ Candidature envoyée avec succès au staff !");
         closeModal();
         this.reset();
       } else {
-        alert("❌ Erreur : " + result.message);
+        alert("❌ Erreur lors de l'envoi de la candidature.");
       }
     });
   </script>
