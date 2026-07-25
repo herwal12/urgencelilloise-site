@@ -149,6 +149,11 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
+  } catch (error) {
+    console.error("Erreur lors du traitement du bouton :", error);
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Serveur Web démarré sur le port ${PORT}`);
 });
