@@ -56,30 +56,55 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
     return res.status(400).json({ error: "Veuillez remplir tous les champs obligatoires." });
   }
 
-  const discordEmbed = {
-    username: "Recrutement Urgence Lilloise",
+const discordEmbed = {
+    username: "Administration — Urgence Lilloise",
     avatar_url: "https://images-ext-1.discordapp.net/external/8aFZTPSGx86d0OrinnNccclsx-HM782VKGeEWOrsJd0/%3Fsize%3D256/https/cdn.discordapp.com/icons/1525134348842696825/2d0ad7849aa0c15ab794b22a214a4154.png?format=webp&quality=lossless",
     embeds: [{
-      title: `📩 NOUVELLE CANDIDATURE — ${(service || 'Non spécifié').toUpperCase()}`,
-      color: 15019336,
+      title: "DOSSIER DE CANDIDATURE — " + (service || 'GÉNÉRAL').toUpperCase(),
+      color: 0x1E222B,
+      thumbnail: {
+        url: "https://images-ext-1.discordapp.net/external/8aFZTPSGx86d0OrinnNccclsx-HM782VKGeEWOrsJd0/%3Fsize%3D256/https/cdn.discordapp.com/icons/1525134348842696825/2d0ad7849aa0c15ab794b22a214a4154.png?format=webp&quality=lossless"
+      },
       fields: [
-        { 
-          name: "📱 Informations : Discord", 
-          value: `**Pseudo :** ${discordTag}\n**ID :** ${discordId}`, 
-          inline: false 
+        {
+          name: "─── IDENTIFICATION DISCORD ───",
+          value: "**Compte :** `" + discordTag + "`\n**Identifiant :** `" + discordId + "`",
+          inline: true
         },
-        { 
-          name: "👤 Informations : IRL", 
-          value: `**Prénom :** ${prenom}\n**Âge :** ${age} ans\n**Ambition :** ${ambition || 'Non renseignée'}`, 
-          inline: false 
+        {
+          name: "─── INFORMATIONS IRL ───",
+          value: "**Prénom :** " + prenom + "\n**Âge :** " + age + " ans",
+          inline: true
         },
-        { 
-          name: "🔥 Informations : Motivation", 
-          value: `**Pourquoi vous :**\n${motivation}\n\n**Expériences :**\n${experience || 'Aucune'}\n\n**Rôle d'un modérateur :**\n${roleModerateur || 'Non renseigné'}`, 
-          inline: false 
+        {
+          name: "\u200B",
+          value: "\u200B",
+          inline: false
+        },
+        {
+          name: "Ambitions",
+          value: "```\n" + (ambition || 'Non renseignée') + "\n```",
+          inline: false
+        },
+        {
+          name: "Motivations",
+          value: "```\n" + motivation + "\n```",
+          inline: false
+        },
+        {
+          name: "Expériences Passées",
+          value: "```\n" + (experience || 'Aucune expérience mentionnée.') + "\n```",
+          inline: false
+        },
+        {
+          name: "Vision du poste de Modérateur",
+          value: "```\n" + (roleModerateur || 'Non renseigné') + "\n```",
+          inline: false
         }
       ],
-      footer: { text: "Urgence Lilloise Semi FivePD — Made by ymn_0ffcl" },
+      footer: {
+        text: "Urgence Lilloise — Système de Recrutement • Made by ymn_0ffcl"
+      },
       timestamp: new Date()
     }]
   };
