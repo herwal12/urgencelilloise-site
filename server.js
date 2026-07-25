@@ -123,7 +123,7 @@ client.on('interactionCreate', async (interaction) => {
 
     if (action === 'accept') {
       await targetUser.send({
- content: `Félicitation ! Votre candidature visant la modération de notre serveur a été accepté !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.`
+        content: "Félicitation ! Votre candidature visant la modération de notre serveur a été accepté !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket."
       }).catch(() => console.log("Impossible d'envoyer un MP au membre (MP fermés)."));
 
       originalEmbed.setColor(0x2ED573); // Vert
@@ -131,7 +131,7 @@ client.on('interactionCreate', async (interaction) => {
 
     } else if (action === 'refuse') {
       await targetUser.send({
-        content: `Bonjour. Nous vous informons que votre candidature pour le staff d'**Urgence Lilloise** n'a malheureusement **pas été retenue**.\nMerci pour l'intérêt que vous portez à notre serveur.`
+        content: "Bonjour. Nous vous informons que votre candidature pour le staff d'**Urgence Lilloise** n'a malheureusement **pas été retenue**.\nMerci pour l'intérêt que vous portez à notre serveur."
       }).catch(() => console.log("Impossible d'envoyer un MP au membre (MP fermés)."));
 
       originalEmbed.setColor(0xE52D48); // Rouge
@@ -148,6 +148,7 @@ client.on('interactionCreate', async (interaction) => {
     console.error("Erreur lors du traitement du bouton :", error);
   }
 });
+
 app.listen(PORT, () => {
   console.log(`Serveur Web démarré sur le port ${PORT}`);
 });
