@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recrutement — Urgence Lilloise</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * {
       margin: 0;
@@ -27,7 +27,6 @@
       background-attachment: fixed;
     }
 
-    /* HEADER */
     header {
       padding: 25px 60px;
       display: flex;
@@ -56,7 +55,6 @@
     nav a { color: #a0a0a0; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: color 0.3s; }
     nav a:hover, nav a.active { color: #ffffff; }
 
-    /* CONTENU RECRUTEMENT */
     .container {
       max-width: 1000px;
       margin: 50px auto;
@@ -105,7 +103,6 @@
       line-height: 1.5;
     }
 
-    /* GRID DES POSTES */
     .jobs-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -174,7 +171,6 @@
       color: #000000;
     }
 
-    /* MODAL POPUP (FORMULAIRE) */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -293,7 +289,6 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <header>
     <a href="/" class="logo">
       <img src="https://images-ext-1.discordapp.net/external/8aFZTPSGx86d0OrinnNccclsx-HM782VKGeEWOrsJd0/%3Fsize%3D256/https/cdn.discordapp.com/icons/1525134348842696825/2d0ad7849aa0c15ab794b22a214a4154.png?format=webp&quality=lossless" alt="Logo Urgence Lilloise">
@@ -306,7 +301,6 @@
     </nav>
   </header>
 
-  <!-- CONTENU -->
   <div class="container">
     <div class="section-box">
       <div class="header-box">
@@ -318,7 +312,6 @@
       </div>
 
       <div class="jobs-grid">
-        <!-- CARTE 1 : MODÉRATION -->
         <div class="job-card">
           <div>
             <div class="job-card-icon"><i class="fa-solid fa-user-shield"></i></div>
@@ -328,7 +321,6 @@
           <button class="btn-apply" onclick="openModal('Modération')">Recrutement ouvert — postuler</button>
         </div>
 
-        <!-- CARTE 2 : COMMUNITY MANAGER -->
         <div class="job-card">
           <div>
             <div class="job-card-icon"><i class="fa-solid fa-headset"></i></div>
@@ -341,7 +333,6 @@
     </div>
   </div>
 
-  <!-- MODAL FORMULAIRE POPUP -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal-content">
       <div class="modal-header">
@@ -351,50 +342,39 @@
       <form id="applyForm">
         <input type="hidden" id="roleInput" name="service">
 
-        <!-- SECTION 1 : DISCORD -->
         <div class="form-section-title"><i class="fa-brands fa-discord"></i> Informations : Discord</div>
-        
         <div class="form-group">
           <label>Pseudo Discord :</label>
           <input type="text" name="discordTag" required placeholder="Ex: ymn_0ffcl">
         </div>
-
         <div class="form-group">
           <label>Identifiant Discord (ID Utilisateur) :</label>
           <input type="text" name="discordId" required placeholder="Ex: 1525200263173112018">
         </div>
 
-        <!-- SECTION 2 : IRL -->
         <div class="form-section-title"><i class="fa-solid fa-user"></i> Informations : IRL</div>
-
         <div class="form-group">
           <label>Prénom :</label>
           <input type="text" name="prenom" required placeholder="Votre prénom...">
         </div>
-
         <div class="form-group">
           <label>Âge :</label>
           <input type="number" name="age" required placeholder="Ex: 18">
         </div>
-
         <div class="form-group">
           <label>Ambition :</label>
           <textarea name="ambition" rows="2" required placeholder="Quelles sont vos ambitions au sein de la communauté ?"></textarea>
         </div>
 
-        <!-- SECTION 3 : MOTIVATION -->
         <div class="form-section-title"><i class="fa-solid fa-fire"></i> Informations : Motivation</div>
-
         <div class="form-group">
           <label>Pourquoi vous et pas un autre ?</label>
           <textarea name="motivation" rows="3" required placeholder="Exposez vos motivations et vos atouts..."></textarea>
         </div>
-
         <div class="form-group">
           <label>Vos expériences (si vous en avez, citez-les) :</label>
           <textarea name="experience" rows="3" placeholder="Vos expériences passées en modération / administration..."></textarea>
         </div>
-
         <div class="form-group">
           <label>Dans vos mots, en quoi consiste le rôle d'un modérateur ?</label>
           <textarea name="roleModerateur" rows="3" required placeholder="Expliquez votre vision du rôle de modérateur..."></textarea>
@@ -409,7 +389,7 @@
     <p>&copy; 2026 Urgence Lilloise. Tous droits réservés. — Made by <span>ymn_0ffcl</span></p>
   </footer>
 
-<script>
+  <script>
     function openModal(roleName) {
       document.getElementById('modalTitle').innerText = "Postuler au poste de " + roleName;
       document.getElementById('roleInput').value = roleName;
