@@ -125,4 +125,55 @@ client.on('interactionCreate', async (interaction) => {
           .setTitle("🪪 Recrutement")
           .setDescription("Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Acceptée.**\n\n🎉 Félicitation ! Votre candidature visant la modération de notre serveur a été acceptée !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.")
           .setColor(0x2ED573)
-          .setThumbnail("[https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf1](https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf1)
+          .setThumbnail("[https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp](https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp)")
+          .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
+
+        await targetUser.send({ embeds: [acceptEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+
+        originalEmbed.setColor(0x2ED573);
+        originalEmbed.addFields({ name: "Statut du Dossier", value: `✅ **ACCEPTÉ** par ${staffUser.tag}`, inline: false });
+
+        await interaction.editReply({ embeds: [originalEmbed], components: [] });
+
+      } else if (action === 'refuse') {
+        const modal = new ModalBuilder()
+          .setCustomId(`modal_refuse_${targetUserId}`)
+          .setTitle('Motif du refus de la candidature');
+
+        const reasonInput = new TextInputBuilder()
+          .setCustomId('refuse_reason')
+          .setLabel('Raison du refus :')
+          .setStyle(TextInputStyle.Paragraph)
+          .setPlaceholder('Ex: Réponse trop courte, candidature nulle...')
+          .setRequired(true);
+
+        modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+        await interaction.showModal(modal);
+      }
+    }
+
+    // 2. Si c'est la soumission de la modale de refus
+    if (interaction.isModalSubmit()) {
+      if (interaction.customId.startsWith('modal_refuse_')) {
+        const targetUserId = interaction.customId.replace('modal_refuse_', '');
+        const reason = interaction.fields.getTextInputValue('refuse_reason');
+
+        await interaction.deferUpdate();
+
+        const staffUser = interaction.user;
+        const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+        const targetUser = await client.users.fetch(targetUserId);
+
+        const refuseEmbed = new EmbedBuilder()
+          .setTitle("🪪 Recrutement")
+          .setDescription(`Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Refusée.**\n\n❌ Bonjour. Nous vous informons que votre candidature pour le staff d'**Urgence Lilloise** n'a malheureusement **pas été retenue**.\n\n📌 **Raison du refus :**\n> *${reason}*\n\nMerci pour l'intérêt que vous portez à notre serveur.`)
+          .setColor(0xE52D48)
+          .setThumbnail("[https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp](https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp)")
+          .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
+
+        await targetUser.send({ embeds: [refuseEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+
+        originalEmbed.setColor(0xE52D48);
+        originalEmbed.addFields(
+          { name: "Statut du Dossier", value: `❌ **REFUSÉ** par ${staffUser.tag}`, inline: false },
+          { name: "
