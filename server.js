@@ -40,30 +40,31 @@ client.once('ready', () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
 });
 
-// Commande pour envoyer le panel de recrutement dans le salon dédié
+// Commande pour envoyer le panel de recrutement fermé dans le salon dédié
 client.on('messageCreate', async (message) => {
   if (message.author.bot || message.content !== '!panel') return;
 
   const embed = new EmbedBuilder()
     .setColor('#e52d48')
     .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
-    .setDescription("Les recrutements sont actuellement **ouverts**.\n\nClique sur le bouton ci-dessous pour accéder au site et postuler directement !")
+    .setDescription("Recrutements fermés\n\nLes recrutements sont actuellement **fermés**.\n\nAucune nouvelle candidature ne peut être envoyée pour le moment.")
     .setThumbnail(LOGO_URL)
     .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
 
+  // Bouton désactivé (grisé et impossible à cliquer)
   const row = new ActionRowBuilder()
     .addComponents(
       new ButtonBuilder()
-        .setLabel('Accéder au site / Postuler')
-        .setStyle(ButtonStyle.Link)
-        .setURL('https://urgencelilloise.onrender.com/recrutement')
-        .setEmoji('🔗')
+        .setCustomId('recrutements_fermes')
+        .setLabel('Recrutements fermés')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(true)
     );
 
   const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
   if (channel) {
     await channel.send({ embeds: [embed], components: [row] });
-    message.reply('✅ Panel de recrutement envoyé avec succès !');
+    message.reply('✅ Panel de recrutement fermé envoyé avec succès !');
   } else {
     message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
   }
@@ -87,70 +88,9 @@ app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
 
-// Traitement du formulaire de recrutement
+// Traitement du formulaire de recrutement (Bloqué car fermés)
 app.post('/recrutement', applyLimiter, async (req, res) => {
-  const { service, discordTag, discordId, prenom, age, ambition, motivation, experience, roleModerateur } = req.body;
-
-  if (!discordTag || !discordId || !prenom || !age || !motivation) {
-    return res.status(400).json({ error: "Veuillez remplir tous les champs obligatoires." });
-  }
-
-  try {
-    const channel = await client.channels.fetch(RECRUTEMENT_CHANNEL_ID);
-    if (!channel) {
-      return res.status(500).json({ error: "Salon Discord introuvable." });
-    }
-
-    // Vérification si le service demandé est Community Manager
-    const isCM = service && service.toLowerCase().includes('community');
-
-    // Création de l'Embed
-    const embed = new EmbedBuilder()
-      .setTitle(`DOSSIER DE CANDIDATURE — ${(service || 'GÉNÉRAL').toUpperCase()}`)
-      .setColor(isCM ? 0xE52D48 : 0x1E222B)
-      .setThumbnail(LOGO_URL)
-      .addFields(
-        { name: "Identification Discord", value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId}\``, inline: true },
-        { name: "Informations IRL", value: `• **Prénom :** ${prenom}\n• **Âge :** ${age} ans`, inline: true },
-        { name: "\u200B", value: "\u200B", inline: false },
-        { name: "Ambitions", value: `\`\`\`\n${ambition || 'Non renseignée'}\n\`\`\``, inline: false },
-        { name: "Motivations", value: `\`\`\`\n${motivation}\n\`\`\``, inline: false },
-        { name: "Expériences Passées", value: `\`\`\`\n${experience || 'Aucune expérience mentionnée.'}\n\`\`\``, inline: false },
-        { name: "Vision du poste de Modérateur", value: `\`\`\`\n${roleModerateur || 'Non renseigné'}\n\`\`\``, inline: false }
-      )
-      .setFooter({ text: "Urgence Lilloise — Système de Recrutement • Made by ymn_0ffcl" })
-      .setTimestamp();
-
-    if (isCM) {
-      embed.addFields({ name: "Statut du Dossier", value: "❌ **CANDIDATURE FERMÉE** (Poste indisponible)", inline: false });
-    }
-
-    // Création des Boutons (Désactivés si c'est CM)
-    const buttons = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`accept_${discordId}`)
-        .setLabel('Accepter')
-        .setStyle(ButtonStyle.Success)
-        .setDisabled(isCM),
-      new ButtonBuilder()
-        .setCustomId(`refuse_${discordId}`)
-        .setLabel('Refuser')
-        .setStyle(ButtonStyle.Danger)
-        .setDisabled(isCM)
-    );
-
-    await channel.send({ embeds: [embed], components: [buttons] });
-    
-    if (isCM) {
-      return res.status(400).json({ error: "Les recrutements pour le poste de Community Manager sont actuellement fermés." });
-    }
-
-    return res.json({ success: true, message: "Candidature envoyée avec succès !" });
-
-  } catch (err) {
-    console.error("Erreur lors de l'envoi de la candidature :", err);
-    return res.status(500).json({ error: "Erreur lors de la communication avec le serveur Discord." });
-  }
+  return res.status(403).json({ error: "Les recrutements sont actuellement fermés. Aucune candidature n'est acceptée." });
 });
 
 // Gestion des Interactions (Boutons et Modals)
