@@ -20,9 +20,12 @@ const PORT = process.env.PORT || 3000;
 // Variables d'environnement & IDs
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1526171548472446986';
-const TICKET_CATEGORY_ID = '1525160491511713912'; // ID de la catégorie où les salons de tickets vont se créer
+const TICKET_CATEGORY_ID = '1525160491511713912'; 
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a66323f&is=6a64e0bf&hm=bee565cff709ceecf1239dc8d86da488d8638079ff8c78876a556d077616996f&=&format=webp&quality=lossless';
 const BANNER_URL = 'https://media.discordapp.net/attachments/1525200263173112018/1530635436660146317/image.png';
+
+// Mets ici l'URL de ton site internet (ou laisse ton domaine Render)
+const WEBSITE_URL = 'https://urgencelilloise.onrender.com/recrutement';
 
 // Initialisation du Bot Discord avec les intents nécessaires
 const client = new Client({
@@ -95,45 +98,51 @@ function getTicketPanelContent() {
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
-  // Permet de voir dans les logs Render si le bot intercepte bien tes messages
-  console.log(`[MESSAGE REÇU] De ${message.author.tag} : "${message.content}"`);
-
   const content = message.content.trim().toLowerCase();
 
-  // 1. Commande !panel pour envoyer le panneau de tickets
+  // 1. Commande !panel (Tickets)
   if (content === '!panel') {
     try {
       await message.delete().catch(() => {});
       const panelData = getTicketPanelContent();
       await message.channel.send(panelData);
-      console.log("✅ Panel de tickets envoyé avec succès via !panel !");
     } catch (e) {
       console.error("❌ Erreur lors de l'envoi du panel :", e);
     }
   }
 
-  // 2. Commande !panel-recrutement
+  // 2. Commande !panel-recrutement (Redirige vers le site web)
   if (content === '!panel-recrutement') {
-    const embed = new EmbedBuilder()
-      .setColor('#e52d48')
-      .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
-      .setDescription("Recrutements fermés\n\nLes recrutements sont actuellement **fermés**.\n\nAucune nouvelle candidature ne peut être envoyée pour le moment.")
-      .setThumbnail(LOGO_URL)
-      .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
+    if (!message.member.permissions.has('Administrator')) {
+      return message.reply('❌ Tu n\'as pas la permission d\'utiliser cette commande.');
+    }
 
-    const row = new ActionRowBuilder()
-      .addComponents(
-        new ButtonBuilder()
-          .setCustomId('recrutements_fermes')
-          .setLabel('Recrutements fermés')
-          .setStyle(ButtonStyle.Secondary)
-          .setDisabled(true)
-      );
+    try {
+      await message.delete().catch(() => {});
 
-    const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
-    if (channel) {
-      await channel.send({ embeds: [embed], components: [row] });
-      message.reply('✅ Panel de recrutement fermé envoyé avec succès !');
+      const embed = new EmbedBuilder()
+        .setColor('#e52d48')
+        .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
+        .setDescription("Envie de rejoindre l'équipe ?\n\nLes recrutements se font directement sur notre site internet officiel.\nClique sur le bouton ci-dessous pour accéder à la plateforme de candidature !")
+        .setThumbnail(LOGO_URL)
+        .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
+
+      // Bouton avec lien URL vers ton site internet
+      const row = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setLabel('Accéder aux recrutements')
+            .setStyle(ButtonStyle.Link)
+            .setURL(WEBSITE_URL)
+            .setEmoji('🌐')
+        );
+
+      const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
+      if (channel) {
+        await channel.send({ embeds: [embed], components: [row] });
+      }
+    } catch (e) {
+      console.error("❌ Erreur lors de l'envoi du panel recrutement :", e);
     }
   }
 });
@@ -215,76 +224,7 @@ client.on('interactionCreate', async (interaction) => {
         setTimeout(() => interaction.channel.delete().catch(() => {}), 3000);
         return;
       }
-
-      const [action, targetUserId] = interaction.customId.split('_');
-      
-      if (action === 'accept') {
-        await interaction.deferUpdate();
-        const staffUser = interaction.user;
-        const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
-        const targetUser = await client.users.fetch(targetUserId);
-
-        const acceptEmbed = new EmbedBuilder()
-          .setTitle("🪪 Recrutement")
-          .setDescription("Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Acceptée.**\n\n🎉 Félicitation ! Votre candidature visant la modération de notre serveur a été acceptée !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.")
-          .setColor(0x2ED573)
-          .setThumbnail("https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp")
-          .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
-
-        await targetUser.send({ embeds: [acceptEmbed] }).catch(() => {});
-
-        originalEmbed.setColor(0x2ED573);
-        originalEmbed.addFields({ name: "Statut du Dossier", value: `✅ **ACCEPTÉ** par ${staffUser.tag}`, inline: false });
-
-        await interaction.editReply({ embeds: [originalEmbed], components: [] });
-
-      } else if (action === 'refuse') {
-        const modal = new ModalBuilder()
-          .setCustomId(`modal_refuse_${targetUserId}`)
-          .setTitle('Motif du refus de la candidature');
-
-        const reasonInput = new TextInputBuilder()
-          .setCustomId('refuse_reason')
-          .setLabel('Raison du refus :')
-          .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder('Ex: Réponse trop courte...')
-          .setRequired(true);
-
-        modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
-        await interaction.showModal(modal);
-      }
     }
-
-    if (interaction.isModalSubmit()) {
-      if (interaction.customId.startsWith('modal_refuse_')) {
-        const targetUserId = interaction.customId.replace('modal_refuse_', '');
-        const reason = interaction.fields.getTextInputValue('refuse_reason');
-
-        await interaction.deferUpdate();
-
-        const staffUser = interaction.user;
-        const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
-        const targetUser = await client.users.fetch(targetUserId);
-
-        const refuseEmbed = new EmbedBuilder()
-          .setTitle("🪪 Recrutement")
-          .setDescription(`Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Refusée.**\n\n❌ Bonjour. Nous vous informons que votre candidature pour le staff d'**Urgence Lilloise** n'a malheureusement **pas été retenue**.\n\n📌 **Raison du refus :**\n> *${reason}*\n\nMerci pour l'intérêt que vous portez à notre serveur.`)
-          .setColor(0xE52D48)
-          .setThumbnail("https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp")
-          .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
-
-        await targetUser.send({ embeds: [refuseEmbed] }).catch(() => {});
-
-        originalEmbed.setColor(0xE52D48);
-        originalEmbed.addFields(
-          { name: "Statut du Dossier", value: `❌ **REFUSÉ** par ${staffUser.tag}`, inline: false },
-          { name: "Raison du Refus", value: `\`\`\`\n${reason}\n\`\`\``, inline: false }
-        );
-
-        await interaction.editReply({ embeds: [originalEmbed], components: [] });
-      }
-    }
-
   } catch (error) {
     console.error("Erreur lors du traitement de l'interaction :", error);
   }
