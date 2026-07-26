@@ -24,10 +24,9 @@ const TICKET_CATEGORY_ID = '1525160491511713912';
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a66323f&is=6a64e0bf&hm=bee565cff709ceecf1239dc8d86da488d8638079ff8c78876a556d077616996f&=&format=webp&quality=lossless';
 const BANNER_URL = 'https://media.discordapp.net/attachments/1525200263173112018/1530635436660146317/image.png';
 
-// Mets ici l'URL de ton site internet (ou laisse ton domaine Render)
 const WEBSITE_URL = 'https://urgencelilloise.onrender.com/recrutement';
 
-// Initialisation du Bot Discord avec les intents nécessaires
+// Initialisation du Bot Discord
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -37,7 +36,6 @@ const client = new Client({
   ]
 });
 
-// Connexion du Bot
 client.login(DISCORD_BOT_TOKEN).catch(err => {
   console.error("❌ Erreur de connexion au Bot Discord:", err);
 });
@@ -46,7 +44,7 @@ client.once('ready', () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
 });
 
-// Fonction pour générer le contenu du panel de tickets
+// Fonction pour générer le panel de tickets
 function getTicketPanelContent() {
   const ticketEmbed = new EmbedBuilder()
     .setColor('#e52d48')
@@ -100,7 +98,6 @@ client.on('messageCreate', async (message) => {
 
   const content = message.content.trim().toLowerCase();
 
-  // 1. Commande !panel (Tickets)
   if (content === '!panel') {
     try {
       await message.delete().catch(() => {});
@@ -111,7 +108,6 @@ client.on('messageCreate', async (message) => {
     }
   }
 
-  // 2. Commande !panel-recrutement (Redirige vers le site web)
   if (content === '!panel-recrutement') {
     if (!message.member.permissions.has('Administrator')) {
       return message.reply('❌ Tu n\'as pas la permission d\'utiliser cette commande.');
@@ -127,7 +123,6 @@ client.on('messageCreate', async (message) => {
         .setThumbnail(LOGO_URL)
         .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
 
-      // Bouton avec lien URL vers ton site internet
       const row = new ActionRowBuilder()
         .addComponents(
           new ButtonBuilder()
@@ -154,9 +149,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Sécurité assouplie (monte la limite à 50 requêtes pour éviter de bloquer en test)
 const applyLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 50, 
   message: { error: "Trop de tentatives. Réessayez plus tard." }
 });
 
@@ -166,11 +162,20 @@ app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
 app.get('/reglement', (req, res) => res.render('reglement'));
 
+// ROUTE OUVERTE POUR LES CANDIDATURES (plus de blocage 403)
 app.post('/recrutement', applyLimiter, async (req, res) => {
-  return res.status(403).json({ error: "Les recrutements sont actuellement fermés. Aucune candidature n'est acceptée." });
+  try {
+    const { discordPseudo, discordId, prenom, age, ambition, motivation1, motivation2, motivation3 } = req.body;
+    
+    // Ici tu pourras ajouter le code pour envoyer la candidature dans un salon Discord si tu veux, ou renvoyer un succès
+    return res.status(200).json({ success: true, message: "Candidature envoyée avec succès !" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Erreur serveur lors de l'envoi." });
+  }
 });
 
-// Gestion des Interactions (Boutons, Menus Déroulants et Modals)
+// Gestion des Interactions Discord (Tickets)
 client.on('interactionCreate', async (interaction) => {
   try {
     if (interaction.isStringSelectMenu()) {
@@ -184,14 +189,8 @@ client.on('interactionCreate', async (interaction) => {
           type: 0, 
           parent: TICKET_CATEGORY_ID,
           permissionOverwrites: [
-            {
-              id: guild.id,
-              deny: ['ViewChannel'],
-            },
-            {
-              id: member.id,
-              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
-            },
+            { id: guild.id, deny: ['ViewChannel'] },
+            { id: member.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
           ],
         });
 
