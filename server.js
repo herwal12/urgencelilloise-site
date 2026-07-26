@@ -24,7 +24,7 @@ const TICKET_CATEGORY_ID = '1525160491511713912'; // ID de la catégorie où les
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a66323f&is=6a64e0bf&hm=bee565cff709ceecf1239dc8d86da488d8638079ff8c78876a556d077616996f&=&format=webp&quality=lossless';
 const BANNER_URL = 'https://media.discordapp.net/attachments/1525200263173112018/1530635436660146317/image.png';
 
-// Initialisation du Bot Discord
+// Initialisation du Bot Discord avec les intents nécessaires
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -95,14 +95,13 @@ function getTicketPanelContent() {
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
+  // Permet de voir dans les logs Render si le bot intercepte bien tes messages
+  console.log(`[MESSAGE REÇU] De ${message.author.tag} : "${message.content}"`);
+
   const content = message.content.trim().toLowerCase();
 
   // 1. Commande !panel pour envoyer le panneau de tickets
   if (content === '!panel') {
-    if (!message.member.permissions.has('Administrator')) {
-      return message.reply('❌ Tu n\'as pas la permission d\'utiliser cette commande.');
-    }
-
     try {
       await message.delete().catch(() => {});
       const panelData = getTicketPanelContent();
@@ -113,7 +112,7 @@ client.on('messageCreate', async (message) => {
     }
   }
 
-  // 2. Commande !panel-recrutement (ou autre si besoin)
+  // 2. Commande !panel-recrutement
   if (content === '!panel-recrutement') {
     const embed = new EmbedBuilder()
       .setColor('#e52d48')
@@ -165,7 +164,6 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
 // Gestion des Interactions (Boutons, Menus Déroulants et Modals)
 client.on('interactionCreate', async (interaction) => {
   try {
-    // Sélection dans le menu -> Création du salon de ticket dans la catégorie
     if (interaction.isStringSelectMenu()) {
       if (interaction.customId === 'create_ticket_menu') {
         const selectedValue = interaction.values[0];
@@ -211,7 +209,6 @@ client.on('interactionCreate', async (interaction) => {
       }
     }
 
-    // Gestion des boutons (fermeture de ticket / acceptation de recrutement)
     if (interaction.isButton()) {
       if (interaction.customId === 'close_ticket') {
         await interaction.reply({ content: '🔒 Fermeture du ticket en cours...' });
@@ -250,7 +247,7 @@ client.on('interactionCreate', async (interaction) => {
           .setCustomId('refuse_reason')
           .setLabel('Raison du refus :')
           .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder('Ex: Réponse trop courte, candidature nulle...')
+          .setPlaceholder('Ex: Réponse trop courte...')
           .setRequired(true);
 
         modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
@@ -258,7 +255,6 @@ client.on('interactionCreate', async (interaction) => {
       }
     }
 
-    // Modale de refus
     if (interaction.isModalSubmit()) {
       if (interaction.customId.startsWith('modal_refuse_')) {
         const targetUserId = interaction.customId.replace('modal_refuse_', '');
