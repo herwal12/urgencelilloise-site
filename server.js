@@ -10,7 +10,8 @@ const {
   ButtonStyle,
   ModalBuilder,
   TextInputBuilder,
-  TextInputStyle
+  TextInputStyle,
+  StringSelectMenuBuilder
 } = require('discord.js');
 
 const app = express();
@@ -40,33 +41,89 @@ client.once('ready', () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
 });
 
-// Commande pour envoyer le panel de recrutement fermé dans le salon dédié
+// Commande pour envoyer le panel de recrutement fermé ou le panel de tickets
 client.on('messageCreate', async (message) => {
-  if (message.author.bot || message.content !== '!panel') return;
+  if (message.author.bot) return;
 
-  const embed = new EmbedBuilder()
-    .setColor('#e52d48')
-    .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
-    .setDescription("Recrutements fermés\n\nLes recrutements sont actuellement **fermés**.\n\nAucune nouvelle candidature ne peut être envoyée pour le moment.")
-    .setThumbnail(LOGO_URL)
-    .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
+  // 1. Commande !panel (Recrutement fermé)
+  if (message.content === '!panel') {
+    const embed = new EmbedBuilder()
+      .setColor('#e52d48')
+      .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
+      .setDescription("Recrutements fermés\n\nLes recrutements sont actuellement **fermés**.\n\nAucune nouvelle candidature ne peut être envoyée pour le moment.")
+      .setThumbnail(LOGO_URL)
+      .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
 
-  // Bouton désactivé (grisé et impossible à cliquer)
-  const row = new ActionRowBuilder()
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('recrutements_fermes')
-        .setLabel('Recrutements fermés')
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(true)
+    const row = new ActionRowBuilder()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId('recrutements_fermes')
+          .setLabel('Recrutements fermés')
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(true)
+      );
+
+    const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
+    if (channel) {
+      await channel.send({ embeds: [embed], components: [row] });
+      message.reply('✅ Panel de recrutement fermé envoyé avec succès !');
+    } else {
+      message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
+    }
+  }
+
+  // 2. Commande !panel-ticket (Panneau de support / tickets)
+  if (message.content === '!panel-ticket') {
+    if (!message.member.permissions.has('Administrator')) return;
+    await message.delete().catch(() => {});
+
+    const ticketEmbed = new EmbedBuilder()
+      .setColor('#e52d48')
+      .setAuthor({ 
+        name: 'Urgence Lilloise — Support', 
+        iconURL: LOGO_URL 
+      })
+      .setDescription(
+        "Vous avez besoin d'aide ?\n" +
+        "Notre équipe de staff est disponible pour vous accompagner.\n\n" +
+        "**Sélectionnez une catégorie** dans le menu ci-dessous pour ouvrir votre ticket.\n\n" +
+        "🟡 **Question** — Une question générale sur le serveur\n" +
+        "🛒 **Boutique** — Achat, paiement, commande boutique\n" +
+        "🐛 **Bug IG** — Signaler un bug en jeu\n" +
+        "⚖️ **Légal** — Reprise d'entreprise légale\n" +
+        "💵 **Illégal** — Reprise de groupe illégal\n" +
+        "🔴 **Unban** — Demande de débannissement\n" +
+        "🟢 **Recrutement Staff** — Rejoindre l'équipe staff\n" +
+        "🔵 **Recrutement Animateur** — Rejoindre l'équipe animation\n" +
+        "🇨🇵 **Plainte Staff** — Signaler un membre du staff"
+      )
+      .addFields({
+        name: "⚠️ Avant d'ouvrir un ticket",
+        value: "Assurez-vous de ne pas avoir de ticket déjà ouvert.\n" +
+               "Préparez toutes les informations nécessaires (preuves, ID, captures d'écran).\n" +
+               "Restez respectueux envers le staff."
+      })
+      .setImage('https://media.discordapp.net/attachments/1525200263173112018/1530635436660146317/image.png') // Remplace par le lien direct de ta bannière ticket si besoin
+      .setFooter({ text: 'Urgence Lilloise — Tous droits réservés' });
+
+    const ticketRow = new ActionRowBuilder().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId('create_ticket_menu')
+        .setPlaceholder('Sélectionne ce que tu as besoin.')
+        .addOptions([
+          { label: 'Question', description: 'Question générale sur le serveur', value: 'ticket_question', emoji: '🟡' },
+          { label: 'Boutique', description: 'Achat, paiement, commande boutique', value: 'ticket_boutique', emoji: '🛒' },
+          { label: 'Bug IG', description: 'Signaler un bug en jeu', value: 'ticket_bug', emoji: '🐛' },
+          { label: 'Légal', description: "Reprise d'entreprise légale", value: 'ticket_legal', emoji: '⚖️' },
+          { label: 'Illégal', description: 'Reprise de groupe illégal', value: 'ticket_illegal', emoji: '💵' },
+          { label: 'Unban', description: 'Demande de débannissement', value: 'ticket_unban', emoji: '🔴' },
+          { label: 'Recrutement Staff', description: "Rejoindre l'équipe staff", value: 'ticket_recrutement_staff', emoji: '🟢' },
+          { label: 'Recrutement Animateur', description: "Rejoindre l'équipe animation", value: 'ticket_recrutement_anim', emoji: '🔵' },
+          { label: 'Plainte Staff', description: 'Signaler un membre du staff', value: 'ticket_plainte_staff', emoji: '🇨🇵' }
+        ])
     );
 
-  const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
-  if (channel) {
-    await channel.send({ embeds: [embed], components: [row] });
-    message.reply('✅ Panel de recrutement fermé envoyé avec succès !');
-  } else {
-    message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
+    await message.channel.send({ embeds: [ticketEmbed], components: [ticketRow] });
   }
 });
 
@@ -87,17 +144,28 @@ const applyLimiter = rateLimit({
 app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
-app.get('/reglement', (req, res) => res.render('reglement')); // 👈 Ajouté ici pour régler l'erreur Cannot GET /reglement
+app.get('/reglement', (req, res) => res.render('reglement'));
 
 // Traitement du formulaire de recrutement (Bloqué car fermés)
 app.post('/recrutement', applyLimiter, async (req, res) => {
   return res.status(403).json({ error: "Les recrutements sont actuellement fermés. Aucune candidature n'est acceptée." });
 });
 
-// Gestion des Interactions (Boutons et Modals)
+// Gestion des Interactions (Boutons, Menus Déroulants et Modals)
 client.on('interactionCreate', async (interaction) => {
   try {
-    // 1. Si c'est un clic sur un bouton
+    // 1. Si c'est une sélection dans le menu déroulant des tickets
+    if (interaction.isStringSelectMenu()) {
+      if (interaction.customId === 'create_ticket_menu') {
+        const selectedValue = interaction.values[0];
+        await interaction.reply({ 
+          content: `Votre demande de ticket (**${selectedValue}**) a bien été prise en compte ! (Création du salon en cours...)`, 
+          ephemeral: true 
+        });
+      }
+    }
+
+    // 2. Si c'est un clic sur un bouton (ex: accept/refus de recrutement)
     if (interaction.isButton()) {
       const [action, targetUserId] = interaction.customId.split('_');
       
@@ -138,7 +206,7 @@ client.on('interactionCreate', async (interaction) => {
       }
     }
 
-    // 2. Si c'est la soumission de la modale de refus
+    // 3. Si c'est la soumission de la modale de refus
     if (interaction.isModalSubmit()) {
       if (interaction.customId.startsWith('modal_refuse_')) {
         const targetUserId = interaction.customId.replace('modal_refuse_', '');
