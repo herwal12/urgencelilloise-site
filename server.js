@@ -16,9 +16,10 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Variables d'environnement
+// Variables d'environnement & IDs
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-const RECRUTEMENT_CHANNEL_ID = '1526171548472446986';
+const RECRUTEMENT_CHANNEL_ID = '1526171548472446986'; // Salon pour envoyer le panel !panel
+const CANDIDATURE_DEST_CHANNEL_ID = '1530409770539024465'; // Salon où arrivent les candidatures du site
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a66323f&is=6a64e0bf&hm=bee565cff709ceecf1239dc8d86da488d8638079ff8c78876a556d077616996f&=&format=webp&quality=lossless';
 
 // Initialisation du Bot Discord
@@ -96,14 +97,15 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
   }
 
   try {
-    const channel = await client.channels.fetch(RECRUTEMENT_CHANNEL_ID);
+    // Utilisation du bon salon pour recevoir les candidatures
+    const channel = await client.channels.fetch(CANDIDATURE_DEST_CHANNEL_ID);
     if (!channel) {
-      return res.status(500).json({ error: "Salon Discord introuvable." });
+      return res.status(500).json({ error: "Salon Discord de destination des candidatures introuvable." });
     }
 
     const isCM = service && service.toLowerCase().includes('community');
 
-    // Création de l'Embed exactement comme tu le voulais
+    // Création de l'Embed de candidature
     const embed = new EmbedBuilder()
       .setTitle(`DOSSIER DE CANDIDATURE — ${(service || 'GÉNÉRAL').toUpperCase()}`)
       .setColor(isCM ? 0xE52D48 : 0x1E222B)
