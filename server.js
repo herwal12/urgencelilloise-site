@@ -20,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 // Variables d'environnement & IDs
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1526171548472446986';
+const CANDIDATURE_DEST_CHANNEL_ID = '1530409770539024465'; // Salon où arrivent les candidatures
 const TICKET_CATEGORY_ID = '1525160491511713912'; 
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a66323f&is=6a64e0bf&hm=bee565cff709ceecf1239dc8d86da488d8638079ff8c78876a556d077616996f&=&format=webp&quality=lossless';
 const BANNER_URL = 'https://media.discordapp.net/attachments/1525200263173112018/1530635436660146317/image.png';
@@ -149,7 +150,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Sécurité assouplie (monte la limite à 50 requêtes pour éviter de bloquer en test)
+// Limitation anti-spam assouplie (50 requêtes)
 const applyLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50, 
@@ -162,20 +163,65 @@ app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
 app.get('/reglement', (req, res) => res.render('reglement'));
 
-// ROUTE OUVERTE POUR LES CANDIDATURES (plus de blocage 403)
+// ROUTE DE RÉCEPTION DU FORMULAIRE DE RECRUTEMENT
 app.post('/recrutement', applyLimiter, async (req, res) => {
   try {
-    const { discordPseudo, discordId, prenom, age, ambition, motivation1, motivation2, motivation3 } = req.body;
+    // Récupération des données envoyées depuis le formulaire web
+    // (adapte les noms des variables si tes champs dans ton formulaire HTML ont des attributs 'name' différents)
+    const { 
+      discordPseudo, 
+      discordId, 
+      prenom, 
+      age, 
+      ambition, 
+      motivation1, 
+      motivation2, 
+      motivation3 
+    } = req.body;
+
+    // Récupération du salon Discord où envoyer la candidature
+    const targetChannel = client.channels.cache.get(CANDIDATURE_DEST_CHANNEL_ID);
     
-    // Ici tu pourras ajouter le code pour envoyer la candidature dans un salon Discord si tu veux, ou renvoyer un succès
+    if (targetChannel) {
+      const candidatureEmbed = new EmbedBuilder()
+        .setColor('#e52d48')
+        .setTitle('📥 Nouvelle candidature reçue')
+        .setThumbnail(LOGO_URL)
+        .addFields(
+          { name: '👤 Discord', value: `Pseudo : \`${discordPseudo || 'Non renseigné'}\`\nID : \`${discordId || 'Non renseigné'}\``, inline: false },
+          { name: '📋 Informations IRL', value: `Prénom : \`${prenom || 'Non renseigné'}\`\nÂge : \`${age || 'Non renseigné'} ans\``, inline: false },
+          { name: '🎯 Ambition / Motivation', value: ambition || motivation1 || 'Aucune réponse fournie', inline: false },
+          { name: '💡 Expériences / Rôle', value: motivation2 || 'Aucune réponse fournie', inline: false },
+          { name: '💬 Vision du rôle', value: motivation3 || 'Aucune réponse fournie', inline: false }
+        )
+        .setTimestamp()
+        .setFooter({ text: 'Urgence Lilloise • Système de Recrutement' });
+
+      // Boutons Accepter / Refuser sous la candidature
+      const actionRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`accept_${discordId || 'unknown'}`)
+          .setLabel('Accepter')
+          .setStyle(ButtonStyle.Success)
+          .setEmoji('✅'),
+        new ButtonBuilder()
+          .setCustomId(`refuse_${discordId || 'unknown'}`)
+          .setLabel('Refuser')
+          .setStyle(ButtonStyle.Danger)
+          .setEmoji('❌')
+      );
+
+      await targetChannel.send({ embeds: [candidatureEmbed], components: [actionRow] });
+    }
+
     return res.status(200).json({ success: true, message: "Candidature envoyée avec succès !" });
   } catch (err) {
-    console.error(err);
+    console.error("Erreur lors de l'envoi de la candidature sur Discord :", err);
     return res.status(500).json({ error: "Erreur serveur lors de l'envoi." });
   }
 });
 
-// Gestion des Interactions Discord (Tickets)
+// Gestion des Interactions Discord (Tickets & Boutons de Candidature)
 client.on('interactionCreate', async (interaction) => {
   try {
     if (interaction.isStringSelectMenu()) {
