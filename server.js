@@ -101,10 +101,9 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
       return res.status(500).json({ error: "Salon Discord introuvable." });
     }
 
-    // Vérification si le service demandé est Community Manager
     const isCM = service && service.toLowerCase().includes('community');
 
-    // Création de l'Embed
+    // Création de l'Embed exactement comme tu le voulais
     const embed = new EmbedBuilder()
       .setTitle(`DOSSIER DE CANDIDATURE — ${(service || 'GÉNÉRAL').toUpperCase()}`)
       .setColor(isCM ? 0xE52D48 : 0x1E222B)
@@ -125,7 +124,6 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
       embed.addFields({ name: "Statut du Dossier", value: "❌ **CANDIDATURE FERMÉE** (Poste indisponible)", inline: false });
     }
 
-    // Création des Boutons (Désactivés si c'est CM)
     const buttons = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`accept_${discordId}`)
@@ -156,7 +154,6 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
 // Gestion des Interactions (Boutons et Modals)
 client.on('interactionCreate', async (interaction) => {
   try {
-    // 1. Si c'est un clic sur un bouton
     if (interaction.isButton()) {
       const [action, targetUserId] = interaction.customId.split('_');
       
@@ -197,7 +194,6 @@ client.on('interactionCreate', async (interaction) => {
       }
     }
 
-    // 2. Si c'est la soumission de la modale de refus
     if (interaction.isModalSubmit()) {
       if (interaction.customId.startsWith('modal_refuse_')) {
         const targetUserId = interaction.customId.replace('modal_refuse_', '');
