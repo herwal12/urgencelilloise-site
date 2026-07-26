@@ -20,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 // Variables d'environnement
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1526171548472446986';
+const TICKET_CHANNEL_ID = '1525160491511713912';
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a66323f&is=6a64e0bf&hm=bee565cff709ceecf1239dc8d86da488d8638079ff8c78876a556d077616996f&=&format=webp&quality=lossless';
 
 // Initialisation du Bot Discord
@@ -37,15 +38,72 @@ client.login(DISCORD_BOT_TOKEN).catch(err => {
   console.error("❌ Erreur de connexion au Bot Discord:", err);
 });
 
-client.once('ready', () => {
+client.once('ready', async () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
+
+  // Envoi automatique ou vérification du panel de tickets dans le salon dédié au démarrage
+  try {
+    const ticketChannel = await client.channels.fetch(TICKET_CHANNEL_ID);
+    if (ticketChannel) {
+      // Nettoyage optionnel ou vérification pour éviter les doublons massifs, ou envoi direct :
+      const ticketEmbed = new EmbedBuilder()
+        .setColor('#e52d48')
+        .setAuthor({ 
+          name: 'Urgence Lilloise — Support', 
+          iconURL: LOGO_URL 
+        })
+        .setDescription(
+          "Vous avez besoin d'aide ?\n" +
+          "Notre équipe de staff est disponible pour vous accompagner.\n\n" +
+          "**Sélectionnez une catégorie** dans le menu ci-dessous pour ouvrir votre ticket.\n\n" +
+          "🟡 **Question** — Une question générale sur le serveur\n" +
+          "🛒 **Boutique** — Achat, paiement, commande boutique\n" +
+          "🐛 **Bug IG** — Signaler un bug en jeu\n" +
+          "⚖️ **Légal** — Reprise d'entreprise légale\n" +
+          "💵 **Illégal** — Reprise de groupe illégal\n" +
+          "🔴 **Unban** — Demande de débannissement\n" +
+          "🟢 **Recrutement Staff** — Rejoindre l'équipe staff\n" +
+          "🔵 **Recrutement Animateur** — Rejoindre l'équipe animation\n" +
+          "🇨🇵 **Plainte Staff** — Signaler un membre du staff"
+        )
+        .addFields({
+          name: "⚠️ Avant d'ouvrir un ticket",
+          value: "Assurez-vous de ne pas avoir de ticket déjà ouvert.\n" +
+                 "Préparez toutes les informations nécessaires (preuves, ID, captures d'écran).\n" +
+                 "Restez respectueux envers le staff."
+        })
+        .setImage('https://media.discordapp.net/attachments/1525200263173112018/1530635436660146317/image.png')
+        .setFooter({ text: 'Urgence Lilloise — Tous droits réservés' });
+
+      const ticketRow = new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId('create_ticket_menu')
+          .setPlaceholder('Sélectionne ce que tu as besoin.')
+          .addOptions([
+            { label: 'Question', description: 'Question générale sur le serveur', value: 'ticket_question', emoji: '🟡' },
+            { label: 'Boutique', description: 'Achat, paiement, commande boutique', value: 'ticket_boutique', emoji: '🛒' },
+            { label: 'Bug IG', description: 'Signaler un bug en jeu', value: 'ticket_bug', emoji: '🐛' },
+            { label: 'Légal', description: "Reprise d'entreprise légale", value: 'ticket_legal', emoji: '⚖️' },
+            { label: 'Illégal', description: 'Reprise de groupe illégal', value: 'ticket_illegal', emoji: '💵' },
+            { label: 'Unban', description: 'Demande de débannissement', value: 'ticket_unban', emoji: '🔴' },
+            { label: 'Recrutement Staff', description: "Rejoindre l'équipe staff", value: 'ticket_recrutement_staff', emoji: '🟢' },
+            { label: 'Recrutement Animateur', description: "Rejoindre l'équipe animation", value: 'ticket_recrutement_anim', emoji: '🔵' },
+            { label: 'Plainte Staff', description: 'Signaler un membre du staff', value: 'ticket_plainte_staff', emoji: '🇨🇵' }
+          ])
+      );
+
+      await ticketChannel.send({ embeds: [ticketEmbed], components: [ticketRow] });
+      console.log("✅ Panel de tickets envoyé automatiquement dans le salon configuré !");
+    }
+  } catch (error) {
+    console.error("❌ Impossible d'envoyer le panel de tickets au démarrage :", error);
+  }
 });
 
-// Commande pour envoyer le panel de recrutement fermé ou le panel de tickets
+// Commandes manuelles par message si besoin
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
-  // 1. Commande !panel (Recrutement fermé)
   if (message.content === '!panel') {
     const embed = new EmbedBuilder()
       .setColor('#e52d48')
@@ -70,60 +128,6 @@ client.on('messageCreate', async (message) => {
     } else {
       message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
     }
-  }
-
-  // 2. Commande !panel-ticket (Panneau de support / tickets)
-  if (message.content === '!panel-ticket') {
-    if (!message.member.permissions.has('Administrator')) return;
-    await message.delete().catch(() => {});
-
-    const ticketEmbed = new EmbedBuilder()
-      .setColor('#e52d48')
-      .setAuthor({ 
-        name: 'Urgence Lilloise — Support', 
-        iconURL: LOGO_URL 
-      })
-      .setDescription(
-        "Vous avez besoin d'aide ?\n" +
-        "Notre équipe de staff est disponible pour vous accompagner.\n\n" +
-        "**Sélectionnez une catégorie** dans le menu ci-dessous pour ouvrir votre ticket.\n\n" +
-        "🟡 **Question** — Une question générale sur le serveur\n" +
-        "🛒 **Boutique** — Achat, paiement, commande boutique\n" +
-        "🐛 **Bug IG** — Signaler un bug en jeu\n" +
-        "⚖️ **Légal** — Reprise d'entreprise légale\n" +
-        "💵 **Illégal** — Reprise de groupe illégal\n" +
-        "🔴 **Unban** — Demande de débannissement\n" +
-        "🟢 **Recrutement Staff** — Rejoindre l'équipe staff\n" +
-        "🔵 **Recrutement Animateur** — Rejoindre l'équipe animation\n" +
-        "🇨🇵 **Plainte Staff** — Signaler un membre du staff"
-      )
-      .addFields({
-        name: "⚠️ Avant d'ouvrir un ticket",
-        value: "Assurez-vous de ne pas avoir de ticket déjà ouvert.\n" +
-               "Préparez toutes les informations nécessaires (preuves, ID, captures d'écran).\n" +
-               "Restez respectueux envers le staff."
-      })
-      .setImage('https://media.discordapp.net/attachments/1525200263173112018/1530635436660146317/image.png') // Remplace par le lien direct de ta bannière ticket si besoin
-      .setFooter({ text: 'Urgence Lilloise — Tous droits réservés' });
-
-    const ticketRow = new ActionRowBuilder().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId('create_ticket_menu')
-        .setPlaceholder('Sélectionne ce que tu as besoin.')
-        .addOptions([
-          { label: 'Question', description: 'Question générale sur le serveur', value: 'ticket_question', emoji: '🟡' },
-          { label: 'Boutique', description: 'Achat, paiement, commande boutique', value: 'ticket_boutique', emoji: '🛒' },
-          { label: 'Bug IG', description: 'Signaler un bug en jeu', value: 'ticket_bug', emoji: '🐛' },
-          { label: 'Légal', description: "Reprise d'entreprise légale", value: 'ticket_legal', emoji: '⚖️' },
-          { label: 'Illégal', description: 'Reprise de groupe illégal', value: 'ticket_illegal', emoji: '💵' },
-          { label: 'Unban', description: 'Demande de débannissement', value: 'ticket_unban', emoji: '🔴' },
-          { label: 'Recrutement Staff', description: "Rejoindre l'équipe staff", value: 'ticket_recrutement_staff', emoji: '🟢' },
-          { label: 'Recrutement Animateur', description: "Rejoindre l'équipe animation", value: 'ticket_recrutement_anim', emoji: '🔵' },
-          { label: 'Plainte Staff', description: 'Signaler un membre du staff', value: 'ticket_plainte_staff', emoji: '🇨🇵' }
-        ])
-    );
-
-    await message.channel.send({ embeds: [ticketEmbed], components: [ticketRow] });
   }
 });
 
@@ -158,10 +162,37 @@ client.on('interactionCreate', async (interaction) => {
     if (interaction.isStringSelectMenu()) {
       if (interaction.customId === 'create_ticket_menu') {
         const selectedValue = interaction.values[0];
+        const guild = interaction.guild;
+        const member = interaction.member;
+
+        // Création du salon textuel privé pour le ticket
+        const ticketChannel = await guild.channels.create({
+          name: `ticket-${member.user.username}`,
+          type: 0,
+          permissionOverwrites: [
+            {
+              id: guild.id,
+              deny: ['ViewChannel'],
+            },
+            {
+              id: member.id,
+              allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+            },
+          ],
+        });
+
         await interaction.reply({ 
-          content: `Votre demande de ticket (**${selectedValue}**) a bien été prise en compte ! (Création du salon en cours...)`, 
+          content: `✅ Ton ticket a été créé avec succès : ${ticketChannel}`, 
           ephemeral: true 
         });
+
+        const welcomeEmbed = new EmbedBuilder()
+          .setColor('#e52d48')
+          .setTitle('Ticket — ' + member.user.username)
+          .setDescription(`Bienvenue ${member}, un membre du staff va s'occuper de toi.\nCatégorie choisie : **${selectedValue}**`)
+          .setTimestamp();
+
+        await ticketChannel.send({ content: `${member}`, embeds: [welcomeEmbed] });
       }
     }
 
