@@ -90,7 +90,7 @@ app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
 app.get('/reglement', (req, res) => res.render('reglement'));
 
-// Traitement du formulaire de recrutement (Mis à jour avec les nouvelles questions)
+// Traitement du formulaire de recrutement
 app.post('/recrutement', applyLimiter, async (req, res) => {
   try {
     const { poste, discordTag, discordId, prenom, age, motivation, pourquoiVous, roleSupport, sitTicket, sitAbus } = req.body;
@@ -102,11 +102,6 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
 
     const postName = poste ? poste.toUpperCase() : 'SUPPORT';
 
-    const limitText = (text) => {
-        if (!text) return 'Aucune';
-        return text.length > 1024 ? text.substring(0, 1021) + '...' : text;
-    };
-
     const embed = new EmbedBuilder()
       .setColor('#2b2d31')
       .setTitle(`DOSSIER DE CANDIDATURE — ${postName}`)
@@ -115,12 +110,12 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
         { name: 'Identification Discord', value: `• **Compte :** \`${discordTag || 'Inconnu'}\`\n• **ID :** \`${discordId || 'Inconnu'}\``, inline: false },
         { name: 'Informations IRL', value: `• **Prénom :** ${prenom || 'Non renseigné'}\n• **Âge :** ${age || 'Non renseigné'} ans`, inline: false },
         { name: '⭐ QUESTIONS SUR VOUS', value: '----------------------------------------', inline: false },
-        { name: 'Quels sont vos motivations ?', value: limitText(motivation), inline: false },
-        { name: 'Pourquoi vous et pas un autre ?', value: limitText(pourquoiVous), inline: false },
-        { name: 'Selon vous, a quoi consiste le role d\'un support ?', value: limitText(roleSupport), inline: false },
+        { name: 'Quels sont vos motivations ?', value: `\`\`\`text\n${motivation || 'Aucune'}\n\`\`\``, inline: false },
+        { name: 'Pourquoi vous et pas un autre ?', value: `\`\`\`text\n${pourquoiVous || 'Aucune'}\n\`\`\``, inline: false },
+        { name: 'Selon vous, a quoi consiste le role d\'un support ?', value: `\`\`\`text\n${roleSupport || 'Aucune'}\n\`\`\``, inline: false },
         { name: '⚖️ MISE EN SITUATION', value: '----------------------------------------', inline: false },
-        { name: 'Lorsqu\'un joueur ouvre un ticket, vous devez :', value: limitText(sitTicket), inline: false },
-        { name: 'Un autre support abuse de ses perms devant vous, que faites vous ?', value: limitText(sitAbus), inline: false },
+        { name: 'Lorsqu\'un joueur ouvre un ticket, vous devez :', value: `\`\`\`text\n${sitTicket || 'Aucune'}\n\`\`\``, inline: false },
+        { name: 'Un autre support abuse de ses perms devant vous, que faites vous ?', value: `\`\`\`text\n${sitAbus || 'Aucune'}\n\`\`\``, inline: false },
         { name: 'Statut du Dossier', value: '⏳ **EN ATTENTE DE TRAITEMENT**', inline: false }
       )
       .setFooter({ text: 'Urgence Lilloise — Système de Recrutement • Made by ymn_0ffcl' });
