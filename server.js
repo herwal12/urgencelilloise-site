@@ -90,17 +90,22 @@ app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
 app.get('/reglement', (req, res) => res.render('reglement'));
 
-// Traitement du formulaire de recrutement (OUVERT ET ACTIF pour le site)
+// Traitement du formulaire de recrutement (Mis à jour avec les nouvelles questions)
 app.post('/recrutement', applyLimiter, async (req, res) => {
   try {
-    const { poste, discordTag, discordId, prenom, age, motivation, presentation, experience, animation } = req.body;
+    const { poste, discordTag, discordId, prenom, age, motivation, pourquoiVous, roleSupport, sitTicket, sitAbus } = req.body;
 
     const channel = await client.channels.fetch(CANDIDATURE_DEST_CHANNEL_ID).catch(() => null);
     if (!channel) {
       return res.status(500).json({ error: "Salon de destination des candidatures introuvable." });
     }
 
-    const postName = poste ? poste.toUpperCase() : 'MODÉRATION';
+    const postName = poste ? poste.toUpperCase() : 'SUPPORT';
+
+    const limitText = (text) => {
+        if (!text) return 'Aucune';
+        return text.length > 1024 ? text.substring(0, 1021) + '...' : text;
+    };
 
     const embed = new EmbedBuilder()
       .setColor('#2b2d31')
@@ -109,10 +114,13 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
       .addFields(
         { name: 'Identification Discord', value: `• **Compte :** \`${discordTag || 'Inconnu'}\`\n• **ID :** \`${discordId || 'Inconnu'}\``, inline: false },
         { name: 'Informations IRL', value: `• **Prénom :** ${prenom || 'Non renseigné'}\n• **Âge :** ${age || 'Non renseigné'} ans`, inline: false },
-        { name: 'Motivation', value: `\`\`\`text\n${motivation || 'Aucune'}\n\`\`\``, inline: false },
-        { name: 'Présentation', value: `\`\`\`text\n${presentation || 'Aucune'}\n\`\`\``, inline: false },
-        { name: 'Expérience', value: `\`\`\`text\n${experience || 'Aucune'}\n\`\`\``, inline: false },
-        { name: 'Animation / Idées', value: `\`\`\`text\n${animation || 'Aucune'}\n\`\`\``, inline: false },
+        { name: '⭐ QUESTIONS SUR VOUS', value: '----------------------------------------', inline: false },
+        { name: 'Quels sont vos motivations ?', value: limitText(motivation), inline: false },
+        { name: 'Pourquoi vous et pas un autre ?', value: limitText(pourquoiVous), inline: false },
+        { name: 'Selon vous, a quoi consiste le role d\'un support ?', value: limitText(roleSupport), inline: false },
+        { name: '⚖️ MISE EN SITUATION', value: '----------------------------------------', inline: false },
+        { name: 'Lorsqu\'un joueur ouvre un ticket, vous devez :', value: limitText(sitTicket), inline: false },
+        { name: 'Un autre support abuse de ses perms devant vous, que faites vous ?', value: limitText(sitAbus), inline: false },
         { name: 'Statut du Dossier', value: '⏳ **EN ATTENTE DE TRAITEMENT**', inline: false }
       )
       .setFooter({ text: 'Urgence Lilloise — Système de Recrutement • Made by ymn_0ffcl' });
@@ -131,7 +139,8 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
           .setStyle(ButtonStyle.Danger)
       );
 
-    await channel.send({ embeds: [embed], components: [row] });
+    const pingRoles = '<@&1530783982197805121> <@&1530783982210519232>';
+    await channel.send({ content: `${pingRoles} 🔔 **Nouvelle candidature reçue !**`, embeds: [embed], components: [row] });
 
     return res.status(200).json({ success: true, message: "Candidature envoyée avec succès !" });
   } catch (error) {
