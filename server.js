@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 
 // Variables d'environnement & IDs
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-const RECRUTEMENT_CHANNEL_ID = '1526171548472446986'; // Salon pour envoyer le panel !panel
+const RECRUTEMENT_CHANNEL_ID = '1530783982877278213'; // Salon pour envoyer le panel !panel mis à jour
 const CANDIDATURE_DEST_CHANNEL_ID = '1530409770539024465'; // Salon où arrivent les candidatures du site
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
 
