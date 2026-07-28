@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 3000;
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1526171548472446986'; // Salon pour envoyer le panel !panel
 const CANDIDATURE_DEST_CHANNEL_ID = '1530409770539024465'; // Salon où arrivent les candidatures du site
-const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a66323f&is=6a64e0bf&hm=bee565cff709ceecf1239dc8d86da488d8638079ff8c78876a556d077616996f&=&format=webp&quality=lossless';
+const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
 
 // Initialisation du Bot Discord
 const client = new Client({
@@ -46,17 +46,18 @@ client.on('messageCreate', async (message) => {
   if (message.author.bot || message.content !== '!panel') return;
 
   const embed = new EmbedBuilder()
-    .setColor('#ef4444')
+    .setColor('#e52d48')
     .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
-    .setDescription("Envie de rejoindre l'équipe ?\n\nLes recrutements sont actuellement **fermés** sur notre plateforme.")
-    .setThumbnail(LOGO_URL)
-    .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
+    .setDescription("Comme annoncé, les recrutements sont dorénavant **fermés**. Par conséquent, il vous est actuellement **impossible de postuler**.\n\nMerci de votre compréhension et de l'intérêt que vous portez à notre communauté.")
+    .setThumbnail(LOGO_URL) // Place le logo en haut à droite
+    .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' })
+    .setTimestamp();
 
   const row = new ActionRowBuilder()
     .addComponents(
       new ButtonBuilder()
         .setCustomId('recrutement_ferme')
-        .setLabel('Recrutement fermé ❌')
+        .setLabel('Recrutements fermés ❌')
         .setStyle(ButtonStyle.Danger)
         .setDisabled(true) // Bouton désactivé et grisé
     );
@@ -64,7 +65,7 @@ client.on('messageCreate', async (message) => {
   const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
   if (channel) {
     await channel.send({ embeds: [embed], components: [row] });
-    message.reply('✅ Panel de recrutement (fermé) envoyé avec succès !');
+    message.reply('✅ Panel de recrutement mis à jour et envoyé avec succès !');
   } else {
     message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
   }
@@ -88,12 +89,9 @@ app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
 
-// Traitement du formulaire de recrutement
+// Traitement du formulaire de recrutement (Bloqué car fermé)
 app.post('/recrutement', applyLimiter, async (req, res) => {
-  const { service, discordTag, discordId, prenom, age, ambition, motivation, experience, roleModerateur } = req.body;
-
-  // Recrutements fermés globalement (Modération et Community Manager)
-  return res.status(400).json({ error: "Les recrutements sont actuellement fermés." });
+  return res.status(400).json({ error: "Les recrutements sont actuellement fermés. Impossible de postuler." });
 });
 
 // Gestion des Interactions (Boutons et Modals)
