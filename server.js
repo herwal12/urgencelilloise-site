@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 
 // Variables d'environnement & IDs
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-const RECRUTEMENT_CHANNEL_ID = '1530783982877278213'; // Salon pour envoyer le panel !panel mis à jour
+const RECRUTEMENT_CHANNEL_ID = '1530783982877278213'; // Salon pour envoyer le panel !panel
 const CANDIDATURE_DEST_CHANNEL_ID = '1530409770539024465'; // Salon où arrivent les candidatures du site
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
 
@@ -48,7 +48,7 @@ client.on('messageCreate', async (message) => {
   const embed = new EmbedBuilder()
     .setColor('#e52d48')
     .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
-    .setDescription("Comme annoncé, les recrutements sont dorénavant **fermés**. Par conséquent, il vous est actuellement **impossible de postuler**.\n\nMerci de votre compréhension et de l'intérêt que vous portez à notre communauté.")
+    .setDescription("Comme dit, les recrutements sont dorénavant fermé. Il vous est donc impossible de postuler.")
     .setThumbnail(LOGO_URL) // Place le logo en haut à droite
     .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' })
     .setTimestamp();
@@ -84,10 +84,11 @@ const applyLimiter = rateLimit({
   message: { error: "Trop de tentatives. Réessayez plus tard." }
 });
 
-// Routes
+// Routes du site web (incluant la route /reglement)
 app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
+app.get('/reglement', (req, res) => res.render('reglement'));
 
 // Traitement du formulaire de recrutement (Bloqué car fermé)
 app.post('/recrutement', applyLimiter, async (req, res) => {
