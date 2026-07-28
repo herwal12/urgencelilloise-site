@@ -315,19 +315,10 @@
         <div class="job-card">
           <div>
             <div class="job-card-icon"><i class="fa-solid fa-user-shield"></i></div>
-            <h3>Modération</h3>
+            <h3>Modération & Support</h3>
             <p>Veille au bon déroulement du serveur en jeu et sur Discord. Assure le respect du règlement, gère la prise en charge des tickets et garantit une expérience RP fluide et de qualité pour tous les joueurs.</p>
           </div>
-          <button class="btn-apply" onclick="openModal('Modération')">Postuler</button>
-        </div>
-
-        <div class="job-card">
-          <div>
-            <div class="job-card-icon"><i class="fa-solid fa-headset"></i></div>
-            <h3>Community Manager</h3>
-            <p>Incarne et fais rayonner Urgence Lilloise ! Représente le serveur à travers des lives, la création de contenus (TikTok/YouTube) et l'animation active de nos réseaux sociaux et de la communauté.</p>
-          </div>
-          <button class="btn-apply" onclick="openModal('Community Manager')">Postuler</button>
+          <button class="btn-apply" onclick="openModal('Modération & Support')">Postuler</button>
         </div>
       </div>
     </div>
@@ -362,22 +353,42 @@
           <input type="number" name="age" required placeholder="Ex: 18">
         </div>
 
-        <div class="form-section-title"><i class="fa-solid fa-fire"></i> Informations : Motivation</div>
+        <div class="form-section-title"><i class="fa-solid fa-user-pen"></i> QUESTIONS SUR VOUS</div>
         <div class="form-group">
-          <label>Pourquoi vous et pas un autre (Motivations) ?</label>
-          <textarea name="motivation" rows="3" required placeholder="Exposez vos motivations et vos atouts..."></textarea>
+          <label>Quels sont vos motivations ?</label>
+          <textarea name="motivation" rows="3" required placeholder="Vos motivations..."></textarea>
         </div>
         <div class="form-group">
-          <label>Présentation de vous :</label>
-          <textarea name="presentation" rows="3" required placeholder="Présentez-vous brièvement..."></textarea>
+          <label>Pourquoi vous et pas un autre ?</label>
+          <textarea name="pourquoiVous" rows="3" required placeholder="Ce qui vous différencie..."></textarea>
         </div>
         <div class="form-group">
-          <label>Vos expériences :</label>
-          <textarea name="experience" rows="3" placeholder="Vos expériences passées..."></textarea>
+          <label>Selon vous, a quoi consiste le role d'un support ?</label>
+          <textarea name="roleSupport" rows="3" required placeholder="Votre vision du rôle..."></textarea>
+        </div>
+
+        <div class="form-section-title"><i class="fa-solid fa-book"></i> QUESTION LEXIQUES RP</div>
+        <div class="form-group">
+          <label>Avez-vous des experiences en modération, si oui, citez-les :</label>
+          <textarea name="experienceMod" rows="3" placeholder="Vos expériences..."></textarea>
         </div>
         <div class="form-group">
-          <label>Animation / Idées :</label>
-          <textarea name="animation" rows="3" placeholder="Vos idées pour animer le serveur..."></textarea>
+          <label>Que signifie le Power-Gaming ?</label>
+          <textarea name="powerGaming" rows="3" required placeholder="Définition..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Que signifie le Meta Gaming ?</label>
+          <textarea name="metaGaming" rows="3" required placeholder="Définition..."></textarea>
+        </div>
+
+        <div class="form-section-title"><i class="fa-solid fa-scale-balanced"></i> MISE EN SITUATION</div>
+        <div class="form-group">
+          <label>Lorsqu'un joueur ouvre un ticket, vous devez :</label>
+          <textarea name="sitTicket" rows="3" required placeholder="Votre méthode de prise en charge..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Un autre support abuse de ses perms devant vous, que faites vous ?</label>
+          <textarea name="sitAbus" rows="3" required placeholder="Votre réaction face à cette situation..."></textarea>
         </div>
 
         <button type="submit" class="btn-submit">Envoyer ma candidature</button>
