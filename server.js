@@ -41,30 +41,30 @@ client.once('ready', () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
 });
 
-// Commande pour envoyer le panel de recrutement dans le salon dédié
+// Commande pour envoyer le panel de recrutement fermé dans le salon dédié
 client.on('messageCreate', async (message) => {
   if (message.author.bot || message.content !== '!panel') return;
 
   const embed = new EmbedBuilder()
-    .setColor('#e52d48')
+    .setColor('#ef4444')
     .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
-    .setDescription("Les recrutements sont actuellement **ouverts**.\n\nClique sur le bouton ci-dessous pour accéder au site et postuler directement !")
+    .setDescription("Envie de rejoindre l'équipe ?\n\nLes recrutements sont actuellement **fermés** sur notre plateforme.")
     .setThumbnail(LOGO_URL)
     .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' });
 
   const row = new ActionRowBuilder()
     .addComponents(
       new ButtonBuilder()
-        .setLabel('Accéder au site / Postuler')
-        .setStyle(ButtonStyle.Link)
-        .setURL('https://urgencelilloise.onrender.com/recrutement')
-        .setEmoji('🔗')
+        .setCustomId('recrutement_ferme')
+        .setLabel('Recrutement fermé ❌')
+        .setStyle(ButtonStyle.Danger)
+        .setDisabled(true) // Bouton désactivé et grisé
     );
 
   const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
   if (channel) {
     await channel.send({ embeds: [embed], components: [row] });
-    message.reply('✅ Panel de recrutement envoyé avec succès !');
+    message.reply('✅ Panel de recrutement (fermé) envoyé avec succès !');
   } else {
     message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
   }
@@ -92,65 +92,8 @@ app.get('/boutique', (req, res) => res.render('boutique'));
 app.post('/recrutement', applyLimiter, async (req, res) => {
   const { service, discordTag, discordId, prenom, age, ambition, motivation, experience, roleModerateur } = req.body;
 
-  if (!discordTag || !discordId || !prenom || !age || !motivation) {
-    return res.status(400).json({ error: "Veuillez remplir tous les champs obligatoires." });
-  }
-
-  try {
-    // Utilisation du bon salon pour recevoir les candidatures
-    const channel = await client.channels.fetch(CANDIDATURE_DEST_CHANNEL_ID);
-    if (!channel) {
-      return res.status(500).json({ error: "Salon Discord de destination des candidatures introuvable." });
-    }
-
-    const isCM = service && service.toLowerCase().includes('community');
-
-    // Création de l'Embed de candidature
-    const embed = new EmbedBuilder()
-      .setTitle(`DOSSIER DE CANDIDATURE — ${(service || 'GÉNÉRAL').toUpperCase()}`)
-      .setColor(isCM ? 0xE52D48 : 0x1E222B)
-      .setThumbnail(LOGO_URL)
-      .addFields(
-        { name: "Identification Discord", value: `• **Compte :** \`${discordTag}\`\n• **ID :** \`${discordId}\``, inline: true },
-        { name: "Informations IRL", value: `• **Prénom :** ${prenom}\n• **Âge :** ${age} ans`, inline: true },
-        { name: "\u200B", value: "\u200B", inline: false },
-        { name: "Ambitions", value: `\`\`\`\n${ambition || 'Non renseignée'}\n\`\`\``, inline: false },
-        { name: "Motivations", value: `\`\`\`\n${motivation}\n\`\`\``, inline: false },
-        { name: "Expériences Passées", value: `\`\`\`\n${experience || 'Aucune expérience mentionnée.'}\n\`\`\``, inline: false },
-        { name: "Vision du poste de Modérateur", value: `\`\`\`\n${roleModerateur || 'Non renseigné'}\n\`\`\``, inline: false }
-      )
-      .setFooter({ text: "Urgence Lilloise — Système de Recrutement • Made by ymn_0ffcl" })
-      .setTimestamp();
-
-    if (isCM) {
-      embed.addFields({ name: "Statut du Dossier", value: "❌ **CANDIDATURE FERMÉE** (Poste indisponible)", inline: false });
-    }
-
-    const buttons = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`accept_${discordId}`)
-        .setLabel('Accepter')
-        .setStyle(ButtonStyle.Success)
-        .setDisabled(isCM),
-      new ButtonBuilder()
-        .setCustomId(`refuse_${discordId}`)
-        .setLabel('Refuser')
-        .setStyle(ButtonStyle.Danger)
-        .setDisabled(isCM)
-    );
-
-    await channel.send({ embeds: [embed], components: [buttons] });
-    
-    if (isCM) {
-      return res.status(400).json({ error: "Les recrutements pour le poste de Community Manager sont actuellement fermés." });
-    }
-
-    return res.json({ success: true, message: "Candidature envoyée avec succès !" });
-
-  } catch (err) {
-    console.error("Erreur lors de l'envoi de la candidature :", err);
-    return res.status(500).json({ error: "Erreur lors de la communication avec le serveur Discord." });
-  }
+  // Recrutements fermés globalement (Modération et Community Manager)
+  return res.status(400).json({ error: "Les recrutements sont actuellement fermés." });
 });
 
 // Gestion des Interactions (Boutons et Modals)
@@ -167,7 +110,7 @@ client.on('interactionCreate', async (interaction) => {
 
         const acceptEmbed = new EmbedBuilder()
           .setTitle("🪪 Recrutement")
-          .setDescription("Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Acceptée.**\n\n🎉 Félicitation ! Votre candidature visant la modération de notre serveur a été acceptée !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie Direction, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.")
+          .setDescription("Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Acceptée.**\n\n🎉 Félicitation ! Votre candidature visant la modération de notre serveur a été acceptée !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie **Recrutement**, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.")
           .setColor(0x2ED573)
           .setThumbnail("https://cdn.discordapp.com/avatars/1530428064973066421/28fd2ee654c604eadbad7d53eaf14cdf.webp")
           .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
