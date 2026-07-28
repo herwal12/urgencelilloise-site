@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 
 // Variables d'environnement & IDs
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-const RECRUTEMENT_CHANNEL_ID = '1530783982877278213'; // Salon pour envoyer le panel !panel (fermé)
+const RECRUTEMENT_CHANNEL_ID = '1530783982877278213'; // Salon pour envoyer le panel !panel
 const CANDIDATURE_DEST_CHANNEL_ID = '1530783985045606508'; // Salon où arrivent les candidatures du site
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
 
@@ -41,14 +41,14 @@ client.once('ready', () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
 });
 
-// Commande !panel : Affiche le panel FERMÉ sur Discord
+// Commande !panel : Texte d'origine exact
 client.on('messageCreate', async (message) => {
   if (message.author.bot || message.content !== '!panel') return;
 
   const embed = new EmbedBuilder()
     .setColor('#e52d48')
     .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
-    .setDescription("Comme dit, les recrutements sont dorénavant fermé. Il vous est donc impossible de postuler.")
+    .setDescription("Comme annoncé, les recrutements sont dorénavant **fermés**. Par conséquent, il vous est actuellement **impossible de postuler**.\n\nMerci de votre compréhension et de l'intérêt que vous portez à notre communauté.")
     .setThumbnail(LOGO_URL)
     .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' })
     .setTimestamp();
@@ -65,7 +65,7 @@ client.on('messageCreate', async (message) => {
   const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
   if (channel) {
     await channel.send({ embeds: [embed], components: [row] });
-    message.reply('✅ Panel de recrutement fermé envoyé avec succès !');
+    message.reply('✅ Panel de recrutement envoyé avec succès !');
   } else {
     message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
   }
