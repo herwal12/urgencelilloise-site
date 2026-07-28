@@ -318,7 +318,7 @@
             <h3>Modération</h3>
             <p>Veille au bon déroulement du serveur en jeu et sur Discord. Assure le respect du règlement, gère la prise en charge des tickets et garantit une expérience RP fluide et de qualité pour tous les joueurs.</p>
           </div>
-          <button class="btn-apply" style="background-color: #E52D48; opacity: 0.9; cursor: not-allowed; color: #FFFFFF; border: 1px solid rgba(229, 45, 72, 0.4);" disabled>Recrutement fermé</button>
+          <button class="btn-apply" onclick="openModal('Modération')">Postuler</button>
         </div>
 
         <div class="job-card">
@@ -327,7 +327,7 @@
             <h3>Community Manager</h3>
             <p>Incarne et fais rayonner Urgence Lilloise ! Représente le serveur à travers des lives, la création de contenus (TikTok/YouTube) et l'animation active de nos réseaux sociaux et de la communauté.</p>
           </div>
-          <button class="btn-apply" style="background-color: #E52D48; opacity: 0.9; cursor: not-allowed; color: #FFFFFF;" disabled>Recrutement fermé</button>
+          <button class="btn-apply" onclick="openModal('Community Manager')">Postuler</button>
         </div>
       </div>
     </div>
@@ -340,7 +340,7 @@
         <button class="close-btn" onclick="closeModal()">&times;</button>
       </div>
       <form id="applyForm">
-        <input type="hidden" id="roleInput" name="service">
+        <input type="hidden" id="roleInput" name="poste">
 
         <div class="form-section-title"><i class="fa-brands fa-discord"></i> Informations : Discord</div>
         <div class="form-group">
@@ -361,23 +361,23 @@
           <label>Âge :</label>
           <input type="number" name="age" required placeholder="Ex: 18">
         </div>
-        <div class="form-group">
-          <label>Ambition :</label>
-          <textarea name="ambition" rows="2" required placeholder="Quelles sont vos ambitions au sein de la communauté ?"></textarea>
-        </div>
 
         <div class="form-section-title"><i class="fa-solid fa-fire"></i> Informations : Motivation</div>
         <div class="form-group">
-          <label>Pourquoi vous et pas un autre ?</label>
+          <label>Pourquoi vous et pas un autre (Motivations) ?</label>
           <textarea name="motivation" rows="3" required placeholder="Exposez vos motivations et vos atouts..."></textarea>
         </div>
         <div class="form-group">
-          <label>Vos expériences (si vous en avez, citez-les) :</label>
-          <textarea name="experience" rows="3" placeholder="Vos expériences passées en modération / administration..."></textarea>
+          <label>Présentation de vous :</label>
+          <textarea name="presentation" rows="3" required placeholder="Présentez-vous brièvement..."></textarea>
         </div>
         <div class="form-group">
-          <label>Dans vos mots, en quoi consiste le rôle d'un modérateur ?</label>
-          <textarea name="roleModerateur" rows="3" required placeholder="Expliquez votre vision du rôle de modérateur..."></textarea>
+          <label>Vos expériences :</label>
+          <textarea name="experience" rows="3" placeholder="Vos expériences passées..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Animation / Idées :</label>
+          <textarea name="animation" rows="3" placeholder="Vos idées pour animer le serveur..."></textarea>
         </div>
 
         <button type="submit" class="btn-submit">Envoyer ma candidature</button>
