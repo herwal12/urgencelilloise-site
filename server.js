@@ -207,10 +207,10 @@ app.get('/reglement', (req, res) => {
   res.render('reglement');
 });
 
-// Route pour traiter l'envoi du formulaire de recrutement vers Discord (Mis en forme complète)
+// Route pour traiter l'envoi du formulaire de recrutement vers Discord
 app.post('/recrutement', async (req, res) => {
   try {
-    const { poste, discordTag, discordId, prenom, age, ambition, pourquoiVous, experiences, roleModerateur } = req.body;
+    const { poste, discordTag, discordId, prenom, age, ambitions, pourquoiVous, experiences, roleModerateur } = req.body;
     
     const channel = client.channels.cache.get(CANDIDATURE_DEST_CHANNEL_ID || RECRUTEMENT_CHANNEL_ID);
     if (!channel) {
@@ -234,7 +234,7 @@ app.post('/recrutement', async (req, res) => {
         },
         { 
           name: 'Vos ambitions dans notre staff', 
-          value: `\`\`\`text\n${ambition || 'Aucune ambition renseignée'}\n\`\`\``, 
+          value: `\`\`\`text\n${ambitions || 'Aucune ambition renseignée'}\n\`\`\``, 
           inline: false 
         },
         { 
@@ -253,7 +253,8 @@ app.post('/recrutement', async (req, res) => {
       new ButtonBuilder().setCustomId(`refuse_${targetId}`).setLabel('Refuser').setStyle(ButtonStyle.Danger)
     );
 
-    const staffPing = `<@&1530783982197805117> <@&1530783982210519236>`;
+    // Ping unique avec le rôle demandé
+    const staffPing = `<@&1531701186980352001>`;
     
     await channel.send({ content: `🔔 **Nouvelle candidature reçue !** ${staffPing}`, embeds: [embed], components: [row] });
     res.status(200).json({ success: true });
@@ -368,7 +369,6 @@ client.on('interactionCreate', async (interaction) => {
         return await interaction.showModal(modal);
       }
 
-      // Acceptation ou refus rapide depuis les boutons de candidature si besoin
       if (interaction.customId.startsWith('accept_') || interaction.customId.startsWith('refuse_')) {
         const [action, targetUserId] = interaction.customId.split('_');
 
