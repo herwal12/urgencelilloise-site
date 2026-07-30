@@ -64,9 +64,65 @@ client.once('ready', () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
 });
 
-// Commandes textuelles (!panel et !ticket)
+// Commandes textuelles et de gestion des tickets
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
+
+  // Gestion des commandes de modération de ticket (.rename, .add, .del) dans les salons gérés
+  if (activeTickets.has(message.channel.id)) {
+    const args = message.content.trim().split(/ +/);
+    const command = args.shift().toLowerCase();
+
+    // 1. Commande .rename <nouveau-nom>
+    if (command === '.rename') {
+      const newName = args.join('-');
+      if (!newName) {
+        return message.reply({ content: '❌ Utilisation : `.rename <nouveau-nom>`' });
+      }
+      try {
+        await message.channel.setName(newName);
+        return message.reply({ content: `✅ Salon renommé en **${newName}** avec succès.` });
+      } catch (err) {
+        return message.reply({ content: '❌ Erreur lors du renommage du salon (vérifie les permissions du bot).' });
+      }
+    }
+
+    // 2. Commande .add @membre
+    if (command === '.add') {
+      const targetMember = message.mentions.members.first();
+      if (!targetMember) {
+        return message.reply({ content: '❌ Utilisation : `.add @membre`' });
+      }
+      try {
+        await message.channel.permissionOverwrites.edit(targetMember.id, {
+          ViewChannel: true,
+          SendMessages: true,
+          ReadMessageHistory: true
+        });
+        return message.reply({ content: `✅ ${targetMember} a été ajouté au ticket.` });
+      } catch (err) {
+        return message.reply({ content: '❌ Erreur lors de l\'ajout du membre.' });
+      }
+    }
+
+    // 3. Commande .del @membre
+    if (command === '.del') {
+      const targetMember = message.mentions.members.first();
+      if (!targetMember) {
+        return message.reply({ content: '❌ Utilisation : `.del @membre`' });
+      }
+      try {
+        await message.channel.permissionOverwrites.edit(targetMember.id, {
+          ViewChannel: false,
+          SendMessages: false,
+          ReadMessageHistory: false
+        });
+        return message.reply({ content: `✅ L'accès au ticket a été retiré à ${targetMember}.` });
+      } catch (err) {
+        return message.reply({ content: '❌ Erreur lors du retrait du membre.' });
+      }
+    }
+  }
 
   if (message.content === '!panel') {
     const embed = new EmbedBuilder()
@@ -287,119 +343,21 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     if (interaction.isButton()) {
-      // Fermeture du ticket avec transcript, envoi en MP et envoi dans le salon de logs
+      // 1. Bouton "Fermer le ticket" -> Ouvre le Modal pour demander la raison
       if (interaction.customId === 'close_ticket') {
-        await interaction.reply({ content: '🔒 Fermeture du ticket et génération du transcript...', ephemeral: true });
+        const modal = new ModalBuilder()
+          .setCustomId('modal_close_ticket')
+          .setTitle('Fermeture du ticket');
 
-        const channel = interaction.channel;
-        const guild = interaction.guild;
-        const staffMember = interaction.user;
-        const ticketData = activeTickets.get(channel.id);
+        const reasonInput = new TextInputBuilder()
+          .setCustomId('close_reason')
+          .setLabel('Raison de la fermeture :')
+          .setStyle(TextInputStyle.Paragraph)
+          .setPlaceholder('Ex: Problème résolu, joueur absent, etc.')
+          .setRequired(true);
 
-        let targetUser = null;
-        if (ticketData) {
-          targetUser = await guild.members.fetch(ticketData.userId).catch(() => null);
-        }
-
-        // Récupération des messages pour le transcript
-        let messagesCollection;
-        try {
-          messagesCollection = await channel.messages.fetch({ limit: 100 });
-        } catch {
-          messagesCollection = [];
-        }
-
-        const messages = Array.from(messagesCollection.values()).reverse();
-        const messageCount = messages.length;
-
-        // Génération du HTML du transcript
-        let htmlContent = `
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Transcript - ${channel.name}</title>
-          <style>
-            body { background-color: #313338; color: #dbdee1; font-family: Arial, sans-serif; padding: 20px; }
-            .msg { margin-bottom: 15px; }
-            .author { font-weight: bold; color: #ffffff; }
-            .time { font-size: 11px; color: #949ba4; margin-left: 5px; }
-            .content { margin-top: 5px; white-space: pre-wrap; }
-          </style>
-        </head>
-        <body>
-          <h2>Transcript du salon : #${channel.name}</h2>
-          <hr style="border: 0; border-top: 1px solid #4e5058;"><br>
-        `;
-
-        messages.forEach(m => {
-          const timeStr = new Date(m.createdTimestamp).toLocaleString();
-          htmlContent += `
-            <div class="msg">
-              <span class="author">${m.author.tag}</span><span class="time">${timeStr}</span>
-              <div class="content">${m.content || '[Contenu multimédia / Embed]'}</div>
-            </div>
-          `;
-        });
-
-        htmlContent += `</body></html>`;
-
-        const transcriptBuffer = Buffer.from(htmlContent, 'utf-8');
-        const transcriptAttachment = new AttachmentBuilder(transcriptBuffer, { name: `transcript-${channel.name}.html` });
-
-        // Calcul de la durée du ticket
-        let durationText = "Inconnue";
-        if (ticketData) {
-          const diffMs = Date.now() - ticketData.createdAt;
-          const diffMins = Math.floor(diffMs / 60000);
-          if (diffMins < 1) durationText = "Moins d'une minute";
-          else if (diffMins === 1) durationText = "1 minute";
-          else durationText = `${diffMins} minutes`;
-        }
-
-        const currentDateStr = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
-
-        const embedDetails = new EmbedBuilder()
-          .setColor('#e52d48')
-          .setTitle('🔒 Ticket Fermé')
-          .setDescription(`Ticket fermé sur **Omerta RP**.`)
-          .setThumbnail(SERVER_ICON_URL)
-          .addFields(
-            { name: '📋 Type de ticket', value: `\`${channel.name}\``, inline: true },
-            { name: '👤 Fermé par', value: `\`${staffMember.tag}\``, inline: true },
-            { name: '\u200b', value: '\u200b', inline: false },
-            { name: '📅 Date de fermeture', value: `\`${currentDateStr}\``, inline: false },
-            { name: '⏱️ Durée du ticket', value: `\`${durationText}\``, inline: false },
-            { name: '📊 Nombre de messages', value: `${messageCount}`, inline: false },
-            { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint.', inline: false }
-          )
-          .setFooter({ text: 'Support — Omerta RP' })
-          .setTimestamp();
-
-        // 1. Envoi au joueur en MP
-        if (targetUser) {
-          await targetUser.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(() => {
-            console.log("Impossible d'envoyer le MP au joueur (privés fermés).");
-          });
-        }
-
-        // 2. Envoi dans le salon de logs (1531727851680698379)
-        const logsChannel = guild.channels.cache.get(TICKET_LOGS_CHANNEL_ID);
-        if (logsChannel) {
-          const logEmbed = EmbedBuilder.from(embedDetails)
-            .setDescription(`Ticket \`${channel.name}\` fermé par ${staffMember} (Propriétaire : ${targetUser || 'Inconnu'})`);
-          
-          await logsChannel.send({ embeds: [logEmbed], files: [transcriptAttachment] }).catch(err => {
-            console.error("Erreur lors de l'envoi dans le salon de logs :", err);
-          });
-        }
-
-        activeTickets.delete(channel.id);
-
-        // Suppression du salon après 3 secondes
-        setTimeout(async () => {
-          await channel.delete().catch(() => {});
-        }, 3000);
-        return;
+        modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+        return await interaction.showModal(modal);
       }
 
       const [action, targetUserId] = interaction.customId.split('_');
@@ -452,6 +410,126 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     if (interaction.isModalSubmit()) {
+      // 2. Traitement du Modal de fermeture de ticket (avec la raison)
+      if (interaction.customId === 'modal_close_ticket') {
+        const closeReason = interaction.fields.getTextInputValue('close_reason');
+        await interaction.reply({ content: '🔒 Fermeture du ticket et génération du transcript en cours...', ephemeral: true });
+
+        const channel = interaction.channel;
+        const guild = interaction.guild;
+        const staffMember = interaction.user;
+        const ticketData = activeTickets.get(channel.id);
+
+        let targetUser = null;
+        if (ticketData) {
+          targetUser = await guild.members.fetch(ticketData.userId).catch(() => null);
+        }
+
+        // Récupération des messages pour le transcript
+        let messagesCollection;
+        try {
+          messagesCollection = await channel.messages.fetch({ limit: 100 });
+        } catch {
+          messagesCollection = [];
+        }
+
+        const messages = Array.from(messagesCollection.values()).reverse();
+        const messageCount = messages.length;
+
+        // Génération du HTML du transcript (incluant la raison de fermeture)
+        let htmlContent = `
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Transcript - ${channel.name}</title>
+          <style>
+            body { background-color: #313338; color: #dbdee1; font-family: Arial, sans-serif; padding: 20px; }
+            .reason-box { background-color: #2b2d31; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #e52d48; }
+            .msg { margin-bottom: 15px; }
+            .author { font-weight: bold; color: #ffffff; }
+            .time { font-size: 11px; color: #949ba4; margin-left: 5px; }
+            .content { margin-top: 5px; white-space: pre-wrap; }
+          </style>
+        </head>
+        <body>
+          <h2>Transcript du salon : #${channel.name}</h2>
+          <div class="reason-box">
+            <strong>Raison de fermeture :</strong> ${closeReason}
+          </div>
+          <hr style="border: 0; border-top: 1px solid #4e5058;"><br>
+        `;
+
+        messages.forEach(m => {
+          const timeStr = new Date(m.createdTimestamp).toLocaleString();
+          htmlContent += `
+            <div class="msg">
+              <span class="author">${m.author.tag}</span><span class="time">${timeStr}</span>
+              <div class="content">${m.content || '[Contenu multimédia / Embed]'}</div>
+            </div>
+          `;
+        });
+
+        htmlContent += `</body></html>`;
+
+        const transcriptBuffer = Buffer.from(htmlContent, 'utf-8');
+        const transcriptAttachment = new AttachmentBuilder(transcriptBuffer, { name: `transcript-${channel.name}.html` });
+
+        // Calcul de la durée du ticket
+        let durationText = "Inconnue";
+        if (ticketData) {
+          const diffMs = Date.now() - ticketData.createdAt;
+          const diffMins = Math.floor(diffMs / 60000);
+          if (diffMins < 1) durationText = "Moins d'une minute";
+          else if (diffMins === 1) durationText = "1 minute";
+          else durationText = `${diffMins} minutes`;
+        }
+
+        const currentDateStr = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
+
+        const embedDetails = new EmbedBuilder()
+          .setColor('#e52d48')
+          .setTitle('🔒 Ticket Fermé')
+          .setDescription(`Ticket fermé sur **Omerta RP**.`)
+          .setThumbnail(SERVER_ICON_URL)
+          .addFields(
+            { name: '📋 Type de ticket', value: `\`${channel.name}\``, inline: true },
+            { name: '👤 Fermé par', value: `\`${staffMember.tag}\``, inline: true },
+            { name: '📌 Raison', value: `\`\`\`\n${closeReason}\n\`\`\``, inline: false },
+            { name: '📅 Date de fermeture', value: `\`${currentDateStr}\``, inline: true },
+            { name: '⏱️ Durée du ticket', value: `\`${durationText}\``, inline: true },
+            { name: '📊 Nombre de messages', value: `${messageCount}`, inline: true },
+            { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint.', inline: false }
+          )
+          .setFooter({ text: 'Support — Omerta RP' })
+          .setTimestamp();
+
+        // 1. Envoi au joueur en MP
+        if (targetUser) {
+          await targetUser.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(() => {
+            console.log("Impossible d'envoyer le MP au joueur (privés fermés).");
+          });
+        }
+
+        // 2. Envoi dans le salon de logs (1531727851680698379)
+        const logsChannel = guild.channels.cache.get(TICKET_LOGS_CHANNEL_ID);
+        if (logsChannel) {
+          const logEmbed = EmbedBuilder.from(embedDetails)
+            .setDescription(`Ticket \`${channel.name}\` fermé par ${staffMember} (Propriétaire : ${targetUser || 'Inconnu'})`);
+          
+          await logsChannel.send({ embeds: [logEmbed], files: [transcriptAttachment] }).catch(err => {
+            console.error("Erreur lors de l'envoi dans le salon de logs :", err);
+          });
+        }
+
+        activeTickets.delete(channel.id);
+
+        // Suppression du salon après 3 secondes
+        setTimeout(async () => {
+          await channel.delete().catch(() => {});
+        }, 3000);
+        return;
+      }
+
       if (interaction.customId.startsWith('modal_refuse_')) {
         const targetUserId = interaction.customId.replace('modal_refuse_', '');
         const reason = interaction.fields.getTextInputValue('refuse_reason');
