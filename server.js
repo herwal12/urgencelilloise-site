@@ -10,7 +10,9 @@ const {
   ButtonStyle,
   ModalBuilder,
   TextInputBuilder,
-  TextInputStyle
+  TextInputStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder
 } = require('discord.js');
 
 const app = express();
@@ -20,7 +22,9 @@ const PORT = process.env.PORT || 3000;
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1530783982877278213'; // Salon pour envoyer le panel !panel
 const CANDIDATURE_DEST_CHANNEL_ID = '1530783985045606508'; // Salon où arrivent les candidatures du site
+const TICKET_CHANNEL_ID = '1530783984143962204'; // Salon pour envoyer le panel de tickets !ticket
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
+const TICKET_BANNER_URL = 'https://media.discordapp.net/attachments/1530783984143962204/1532199713468841994/image.png?ex=6a6bfbae&is=6a6aaa2e&hm=f647b951b1389272d866ec5381b8fb42be9c70468ad5b1dc1e20f9eac077a586&=&format=webp&quality=lossless';
 
 // Initialisation du Bot Discord
 const client = new Client({
@@ -41,33 +45,83 @@ client.once('ready', () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
 });
 
-// Commande !panel : Texte d'origine exact
+// Commande !panel : Recrutement
 client.on('messageCreate', async (message) => {
-  if (message.author.bot || message.content !== '!panel') return;
+  if (message.author.bot) return;
 
-  const embed = new EmbedBuilder()
-    .setColor('#e52d48')
-    .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
-    .setDescription("Comme annoncé, les recrutements sont dorénavant **fermés**. Par conséquent, il vous est actuellement **impossible de postuler**.\n\nMerci de votre compréhension et de l'intérêt que vous portez à notre communauté.")
-    .setThumbnail(LOGO_URL)
-    .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' })
-    .setTimestamp();
+  if (message.content === '!panel') {
+    const embed = new EmbedBuilder()
+      .setColor('#e52d48')
+      .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
+      .setDescription("Comme annoncé, les recrutements sont dorénavant **fermés**. Par conséquent, il vous est actuellement **impossible de postuler**.\n\nMerci de votre compréhension et de l'intérêt que vous portez à notre communauté.")
+      .setThumbnail(LOGO_URL)
+      .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' })
+      .setTimestamp();
 
-  const row = new ActionRowBuilder()
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('recrutement_ferme')
-        .setLabel('Recrutements fermés ❌')
-        .setStyle(ButtonStyle.Danger)
-        .setDisabled(true)
-    );
+    const row = new ActionRowBuilder()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId('recrutement_ferme')
+          .setLabel('Recrutements fermés ❌')
+          .setStyle(ButtonStyle.Danger)
+          .setDisabled(true)
+      );
 
-  const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
-  if (channel) {
-    await channel.send({ embeds: [embed], components: [row] });
-    message.reply('✅ Panel de recrutement envoyé avec succès !');
-  } else {
-    message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
+    const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
+    if (channel) {
+      await channel.send({ embeds: [embed], components: [row] });
+      message.reply('✅ Panel de recrutement envoyé avec succès !');
+    } else {
+      message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
+    }
+  }
+
+  // Commande !ticket : Panel de Support
+  if (message.content === '!ticket') {
+    const ticketEmbed = new EmbedBuilder()
+      .setColor('#e52d48')
+      .setTitle('Urgence Lilloise — Support')
+      .setDescription(
+        "Vous avez besoin d'aide ?\n" +
+        "Notre équipe de staff est disponible pour vous accompagner.\n\n" +
+        "**Sélectionnez une catégorie** dans le menu ci-dessous pour ouvrir votre ticket.\n\n" +
+        "💬 **Question** — Une question générale sur le serveur\n" +
+        "🛒 **Boutique** — Achat, paiement, commande boutique\n" +
+        "💢 **Bug IG** — Signaler un bug en jeu\n" +
+        "💵 **Légal** — Reprise d'entreprise légale\n" +
+        "💼 **Illégal** — Reprise de groupe illégal\n" +
+        "🍓 **Unban** — Demande de débannissement\n" +
+        "🚨 **Plainte Staff** — Signaler un membre du staff\n\n" +
+        "⚠️ **Avant d'ouvrir un ticket**\n" +
+        "Assurez-vous de ne pas avoir de ticket déjà ouvert.\n" +
+        "Préparez toutes les informations nécessaires (preuves, ID, captures d'écran).\n" +
+        "Restez respectueux envers le staff."
+      )
+      .setImage(TICKET_BANNER_URL)
+      .setFooter({ text: 'Support — Urgence Lilloise' });
+
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('ticket_select_menu')
+      .setPlaceholder('Sélectionne ce que tu as besoin.')
+      .addOptions([
+        new StringSelectMenuOptionBuilder().setLabel('Question').setDescription('Une question générale sur le serveur').setValue('ticket_question').setEmoji('💬'),
+        new StringSelectMenuOptionBuilder().setLabel('Boutique').setDescription('Achat, paiement, commande boutique').setValue('ticket_boutique').setEmoji('🛒'),
+        new StringSelectMenuOptionBuilder().setLabel('Bug IG').setDescription('Signaler un bug en jeu').setValue('ticket_bug').setEmoji('💢'),
+        new StringSelectMenuOptionBuilder().setLabel('Légal').setDescription('Reprise d\'entreprise légale').setValue('ticket_legal').setEmoji('💵'),
+        new StringSelectMenuOptionBuilder().setLabel('Illégal').setDescription('Reprise de groupe illégal').setValue('ticket_illegal').setEmoji('💼'),
+        new StringSelectMenuOptionBuilder().setLabel('Unban').setDescription('Demande de débannissement').setValue('ticket_unban').setEmoji('🍓'),
+        new StringSelectMenuOptionBuilder().setLabel('Plainte Staff').setDescription('Signaler un membre du staff').setValue('ticket_plainte').setEmoji('🚨'),
+      ]);
+
+    const row = new ActionRowBuilder().addComponents(selectMenu);
+
+    const ticketChannel = client.channels.cache.get(TICKET_CHANNEL_ID);
+    if (ticketChannel) {
+      await ticketChannel.send({ embeds: [ticketEmbed], components: [row] });
+      message.reply('✅ Panel de tickets envoyé avec succès dans le salon dédié !');
+    } else {
+      message.reply('❌ Erreur : Impossible de trouver le salon des tickets.');
+    }
   }
 });
 
@@ -144,9 +198,19 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
   }
 });
 
-// Gestion des Interactions (Boutons et Modals)
+// Gestion des Interactions (Boutons, Menus Déroulants et Modals)
 client.on('interactionCreate', async (interaction) => {
   try {
+    // Gestion du menu déroulant des tickets
+    if (interaction.isStringSelectMenu()) {
+      if (interaction.customId === 'ticket_select_menu') {
+        await interaction.reply({ 
+          content: `✅ Votre sélection a été prise en compte. (La création automatique de salon de ticket peut être configurée ici si besoin).`, 
+          ephemeral: true 
+        });
+      }
+    }
+
     if (interaction.isButton()) {
       const [action, targetUserId] = interaction.customId.split('_');
       
