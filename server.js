@@ -26,64 +26,64 @@ const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1530783982877278213';
 const CANDIDATURE_DEST_CHANNEL_ID = '1530783985045606508';
 const TICKET_CHANNEL_ID = '1530783984143962204';
-const TICKET_LOGS_CHANNEL_ID = '1531727851680698379';
+const TICKET_LOGS_CHANNEL_ID = '1531727851680698379'; // Transcript
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
 const TICKET_BANNER_URL = 'https://media.discordapp.net/attachments/1530783984143962204/1532199713468841994/image.png?ex=6a6bfbae&is=6a6aaa2e&hm=f647b951b1389272d866ec5381b8fb42be9c70468ad5b1dc1e20f9eac077a586&=&format=webp&quality=lossless';
 const SERVER_ICON_URL = 'https://images-ext-1.discordapp.net/external/13dVJvwLxmIyN952nvst_nHPVhRaOG98o5eg0L09rUw/%3Fsize%3D256/https/cdn.discordapp.com/icons/1530783981988085853/01bad94e7ccac907a3d138d7575b101a.png?format=webp&quality=lossless';
 
-// ID du rôle Staff principal à ping et à autoriser sur les tickets normaux
+// Rôles Staff et Admin
 const STAFF_ROLE_ID = '1530783982197805117';
-const ADMIN_ROLE_ID = '1530783982197805122'; // ID Administrateur pour plaintes staff / unban
+const ADMIN_ROLE_ID = '1530783982197805122';
 
-// Correspondance des catégories de tickets avec leurs rôles autorisés spécifiques
+// Correspondance des catégories de tickets avec tes nouveaux IDs
 const TICKET_CATEGORIES = {
   'ticket_question': { 
     name: 'question', 
-    categoryId: '1530783985221898419', 
+    categoryId: '1532213199863283712', 
     title: 'Question',
     allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
   },
   'ticket_boutique': { 
     name: 'boutique', 
-    categoryId: '1531718799542452484', 
+    categoryId: '1532213765431627816', 
     title: 'Boutique',
     allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
   },
   'ticket_bug': { 
     name: 'bug-ig', 
-    categoryId: '1531719099829325925', 
+    categoryId: '1532213885971599442', 
     title: 'Bug IG',
     allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
   },
   'ticket_legal': { 
     name: 'legal', 
-    categoryId: '1531718799542452484', 
+    categoryId: '1532214069556281434', 
     title: 'Légal',
     allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
   },
   'ticket_illegal': { 
     name: 'illegal', 
-    categoryId: '1531718799542452484', 
+    categoryId: '1532214202343751780', 
     title: 'Illégal',
     allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
   },
   'ticket_unban': { 
     name: 'unban', 
-    categoryId: '1531717701125410906', 
+    categoryId: '1532214399945936896', 
     title: 'Unban',
-    allowedRoles: [ADMIN_ROLE_ID] // Uniquement Admin
+    allowedRoles: [ADMIN_ROLE_ID] 
   },
   'ticket_plainte_joueur': { 
     name: 'plainte-joueur', 
-    categoryId: '1531717859309260800', 
+    categoryId: '1532214555990818999', 
     title: 'Plainte Joueur',
     allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
   },
   'ticket_plainte': { 
     name: 'plainte-staff', 
-    categoryId: '1531724039729713223', 
+    categoryId: '1532214697485537381', 
     title: 'Plainte Staff',
-    allowedRoles: [ADMIN_ROLE_ID] // Uniquement Admin pour plainte staff
+    allowedRoles: [ADMIN_ROLE_ID] 
   }
 };
 
@@ -213,12 +213,8 @@ client.on('interactionCreate', async (interaction) => {
         const user = interaction.user;
         const channelName = `${ticketInfo.name}-${user.username}`.toLowerCase().replace(/[^a-z0-9-_]/g, '');
         
-        // Construction des permissions explicites
+        // On donne uniquement accès au créateur du ticket, la catégorie gère le reste (staff/admin)
         const permissionOverwrites = [
-          {
-            id: guild.roles.everyone.id,
-            deny: [PermissionsBitField.Flags.ViewChannel],
-          },
           {
             id: user.id,
             allow: [
@@ -229,34 +225,20 @@ client.on('interactionCreate', async (interaction) => {
           }
         ];
 
-        // Ajout des rôles autorisés (Staff ou Admin selon la catégorie)
-        if (ticketInfo.allowedRoles) {
-          for (const roleId of ticketInfo.allowedRoles) {
-            permissionOverwrites.push({
-              id: roleId,
-              allow: [
-                PermissionsBitField.Flags.ViewChannel, 
-                PermissionsBitField.Flags.SendMessages, 
-                PermissionsBitField.Flags.ReadMessageHistory
-              ],
-            });
-          }
-        }
-
-        // CRUCIAL : lockPermissions: false empêche la catégorie d'écraser les permissions du salon
+        // Création du salon en héritant proprement des permissions de la catégorie parente
         const ticketChannel = await guild.channels.create({
           name: channelName,
           type: ChannelType.GuildText,
           parent: ticketInfo.categoryId,
           permissionOverwrites: permissionOverwrites,
-          lockPermissions: false 
+          lockPermissions: true // Utilise les permissions de la catégorie
         }).catch(err => {
           console.error("Erreur création salon:", err);
           return null;
         });
 
         if (!ticketChannel) {
-          return interaction.editReply({ content: '❌ Impossible de créer le salon du ticket.' });
+          return interaction.editReply({ content: '❌ Impossible de créer le salon du ticket. Vérifie les IDs de catégories ou les permissions du bot !' });
         }
 
         activeTickets.set(ticketChannel.id, {
@@ -279,7 +261,7 @@ client.on('interactionCreate', async (interaction) => {
             .setEmoji('🔒')
         );
 
-        // Ping le joueur + le rôle de la catégorie (ex: Staff général ou Administrateurs)
+        // Ping du joueur + du rôle concerné
         const roleToPing = ticketInfo.allowedRoles.includes(STAFF_ROLE_ID) ? STAFF_ROLE_ID : ADMIN_ROLE_ID;
         await ticketChannel.send({ content: `${user} <@&${roleToPing}>`, embeds: [welcomeEmbed], components: [closeRow] });
 
