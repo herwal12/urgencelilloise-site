@@ -31,16 +31,63 @@ const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1
 const TICKET_BANNER_URL = 'https://media.discordapp.net/attachments/1530783984143962204/1532199713468841994/image.png?ex=6a6bfbae&is=6a6aaa2e&hm=f647b951b1389272d866ec5381b8fb42be9c70468ad5b1dc1e20f9eac077a586&=&format=webp&quality=lossless';
 const SERVER_ICON_URL = 'https://images-ext-1.discordapp.net/external/13dVJvwLxmIyN952nvst_nHPVhRaOG98o5eg0L09rUw/%3Fsize%3D256/https/cdn.discordapp.com/icons/1530783981988085853/01bad94e7ccac907a3d138d7575b101a.png?format=webp&quality=lossless';
 
-// Correspondance des catégories de tickets avec leurs IDs de catégorie Discord
+// Rôles de staff spécifiques selon les types de tickets
+const ROLES = {
+  STAFF_GENERAL: '1530783982197805121', // Rôle staff standard / support
+  ADMIN: '1530783982197805122',         // Rôle administrateur
+  BOUTIQUE: '1531720000000000000',      // Exemple / Ajustez si besoin pour boutique
+};
+
+// Correspondance des catégories de tickets avec leurs IDs de catégorie Discord et rôles autorisés en plus du créateur
 const TICKET_CATEGORIES = {
-  'ticket_question': { name: 'question', categoryId: '1530783985221898419', title: 'Question' },
-  'ticket_boutique': { name: 'boutique', categoryId: '1531718799542452484', title: 'Boutique' },
-  'ticket_bug': { name: 'bug-ig', categoryId: '1531719099829325925', title: 'Bug IG' },
-  'ticket_legal': { name: 'legal', categoryId: '1531718799542452484', title: 'Légal' },
-  'ticket_illegal': { name: 'illegal', categoryId: '1531718799542452484', title: 'Illégal' },
-  'ticket_unban': { name: 'unban', categoryId: '1531717701125410906', title: 'Unban' },
-  'ticket_plainte_joueur': { name: 'plainte-joueur', categoryId: '1531717859309260800', title: 'Plainte Joueur' },
-  'ticket_plainte': { name: 'plainte-staff', categoryId: '1531724039729713223', title: 'Plainte Staff' }
+  'ticket_question': { 
+    name: 'question', 
+    categoryId: '1530783985221898419', 
+    title: 'Question',
+    allowedRoles: ['1530783982197805121'] // Staff général
+  },
+  'ticket_boutique': { 
+    name: 'boutique', 
+    categoryId: '1531718799542452484', 
+    title: 'Boutique',
+    allowedRoles: ['1530783982197805121'] 
+  },
+  'ticket_bug': { 
+    name: 'bug-ig', 
+    categoryId: '1531719099829325925', 
+    title: 'Bug IG',
+    allowedRoles: ['1530783982197805121'] 
+  },
+  'ticket_legal': { 
+    name: 'legal', 
+    categoryId: '1531718799542452484', 
+    title: 'Légal',
+    allowedRoles: ['1530783982197805121'] 
+  },
+  'ticket_illegal': { 
+    name: 'illegal', 
+    categoryId: '1531718799542452484', 
+    title: 'Illégal',
+    allowedRoles: ['1530783982197805121'] 
+  },
+  'ticket_unban': { 
+    name: 'unban', 
+    categoryId: '1531717701125410906', 
+    title: 'Unban',
+    allowedRoles: ['1530783982197805122'] // Réservé aux Administrateurs par exemple
+  },
+  'ticket_plainte_joueur': { 
+    name: 'plainte-joueur', 
+    categoryId: '1531717859309260800', 
+    title: 'Plainte Joueur',
+    allowedRoles: ['1530783982197805121'] 
+  },
+  'ticket_plainte': { 
+    name: 'plainte-staff', 
+    categoryId: '1531724039729713223', 
+    title: 'Plainte Staff',
+    allowedRoles: ['1530783982197805122'] // Strictement Administrateurs pour plainte staff
+  }
 };
 
 // Stockage temporaire pour retrouver le créateur du ticket (userId) et l'heure de création
@@ -295,20 +342,33 @@ client.on('interactionCreate', async (interaction) => {
 
         const channelName = `${ticketInfo.name}-${user.username}`.toLowerCase().replace(/[^a-z0-9-_]/g, '');
         
+        // Construction dynamique des permissions du salon
+        const permissionOverwrites = [
+          {
+            id: guild.roles.everyone.id,
+            deny: [PermissionsBitField.Flags.ViewChannel],
+          },
+          {
+            id: user.id,
+            allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
+          },
+        ];
+
+        // Ajout des permissions pour les rôles autorisés de cette catégorie spécifique
+        if (ticketInfo.allowedRoles && ticketInfo.allowedRoles.length > 0) {
+          for (const roleId of ticketInfo.allowedRoles) {
+            permissionOverwrites.push({
+              id: roleId,
+              allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
+            });
+          }
+        }
+
         const ticketChannel = await guild.channels.create({
           name: channelName,
           type: ChannelType.GuildText,
           parent: ticketInfo.categoryId,
-          permissionOverwrites: [
-            {
-              id: guild.roles.everyone.id,
-              deny: [PermissionsBitField.Flags.ViewChannel],
-            },
-            {
-              id: user.id,
-              allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
-            },
-          ],
+          permissionOverwrites: permissionOverwrites,
         }).catch(err => {
           console.error("Erreur lors de la création du salon de ticket :", err);
           return null;
@@ -558,7 +618,7 @@ client.on('interactionCreate', async (interaction) => {
 
         const fields = originalEmbed.data.fields || [];
         const updatedFields = fields.map(f => {
-          if (f.name === 'Statut du Dossier') {
+          if (f.name === 'Statut Dossier') {
             return { name: 'Statut du Dossier', value: `❌ **REFUSÉ** par ${staffUser.tag}\n**Raison :** \`\`\`\n${reason}\n\`\`\``, inline: false };
           }
           return f;
