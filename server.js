@@ -244,7 +244,7 @@ app.get('/reglement', (req, res) => res.render('reglement'));
 // Traitement du formulaire de recrutement (Site -> Discord)
 app.post('/recrutement', applyLimiter, async (req, res) => {
   try {
-    // Récupération stricte de toutes les données envoyées par le site web
+    // Récupération complète et directe de toutes les variables du site
     const { poste, discordTag, discordId, prenom, age, ambition, pourquoiVous, experiences, roleModerateur } = req.body;
 
     const channel = await client.channels.fetch(CANDIDATURE_DEST_CHANNEL_ID).catch(() => null);
@@ -260,7 +260,7 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
       .addFields(
         { name: 'Identification Discord', value: `• **Compte :** \`${discordTag || 'Inconnu'}\`\n• **ID :** \`${discordId || 'Inconnu'}\``, inline: false },
         { name: 'Informations IRL', value: `• **Prénom :** ${prenom || 'Non renseigné'}\n• **Âge :** ${age || 'Non renseigné'} ans`, inline: false },
-        { name: '⭐ VOS AMBITIONS DANS NOTRE STAFF', value: `\`\`\`text\n${ambition || 'Aucune'}\n\`\`\``, inline: false },
+        { name: '⭐ Vos ambitions dans notre staff', value: `\`\`\`text\n${ambition || 'Aucune'}\n\`\`\``, inline: false },
         { name: '🔥 INFORMATIONS : MOTIVATION', value: '----------------------------------------', inline: false },
         { name: 'Pourquoi vous et pas un autre ?', value: `\`\`\`text\n${pourquoiVous || 'Aucune'}\n\`\`\``, inline: false },
         { name: 'Vos expériences (si vous en avez, citez-les) :', value: `\`\`\`text\n${experiences || 'Aucune'}\n\`\`\``, inline: false },
