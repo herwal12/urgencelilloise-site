@@ -193,6 +193,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// AJOUT DE LA ROUTE D'ACCUEIL POUR ÉVITER LE "Cannot GET /"
+app.get('/', (req, res) => {
+  res.render('index');
+});
+
 client.on('interactionCreate', async (interaction) => {
   try {
     if (interaction.isStringSelectMenu()) {
