@@ -162,7 +162,7 @@ client.on('messageCreate', async (message) => {
     }
   }
 
-  // Commande !panel pour le recrutement (fermé avec bouton désactivé)
+  // Commande !panel pour le recrutement
   if (message.content === '!panel') {
     const embed = new EmbedBuilder()
       .setColor('#e52d48')
@@ -245,10 +245,10 @@ app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
 app.get('/reglement', (req, res) => res.render('reglement'));
 
-// Traitement du formulaire de recrutement (Site -> Discord avec le nouveau modèle exact)
+// Traitement du formulaire de recrutement (Site -> Discord avec les questions exactes)
 app.post('/recrutement', applyLimiter, async (req, res) => {
   try {
-    const { poste, discordTag, discordId, prenom, age, motivation, pourquoiVous, roleSupport, sitTicket, sitAbus } = req.body;
+    const { poste, discordTag, discordId, prenom, age, ambition, pourquoiVous, experiences, roleModerateur } = req.body;
 
     const channel = await client.channels.fetch(CANDIDATURE_DEST_CHANNEL_ID).catch(() => null);
     if (!channel) {
@@ -263,13 +263,11 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
       .addFields(
         { name: 'Identification Discord', value: `• **Compte :** \`${discordTag || 'Inconnu'}\`\n• **ID :** \`${discordId || 'Inconnu'}\``, inline: false },
         { name: 'Informations IRL', value: `• **Prénom :** ${prenom || 'Non renseigné'}\n• **Âge :** ${age || 'Non renseigné'} ans`, inline: false },
-        { name: '⭐ QUESTIONS SUR VOUS', value: '----------------------------------------', inline: false },
-        { name: 'Quels sont vos motivations ?', value: `\`\`\`text\n${motivation || 'Aucune'}\n\`\`\``, inline: false },
+        { name: '⭐ VOS AMBITIONS DANS NOTRE STAFF', value: `\`\`\`text\n${ambition || 'Aucune'}\n\`\`\``, inline: false },
+        { name: '🔥 INFORMATIONS : MOTIVATION', value: '----------------------------------------', inline: false },
         { name: 'Pourquoi vous et pas un autre ?', value: `\`\`\`text\n${pourquoiVous || 'Aucune'}\n\`\`\``, inline: false },
-        { name: 'Selon vous, a quoi consiste le role d\'un support ?', value: `\`\`\`text\n${roleSupport || 'Aucune'}\n\`\`\``, inline: false },
-        { name: '⚖️ MISE EN SITUATION', value: '----------------------------------------', inline: false },
-        { name: 'Lorsqu\'un joueur ouvre un ticket, vous devez :', value: `\`\`\`text\n${sitTicket || 'Aucune'}\n\`\`\``, inline: false },
-        { name: 'Un autre support abuse de ses perms devant vous, que faites vous ?', value: `\`\`\`text\n${sitAbus || 'Aucune'}\n\`\`\``, inline: false },
+        { name: 'Vos expériences (si vous en avez, citez-les) :', value: `\`\`\`text\n${experiences || 'Aucune'}\n\`\`\``, inline: false },
+        { name: 'Dans vos mots, en quoi consiste le rôle d\'un modérateur ?', value: `\`\`\`text\n${roleModerateur || 'Aucune'}\n\`\`\``, inline: false },
         { name: 'Statut du Dossier', value: '⏳ **EN ATTENTE DE TRAITEMENT**', inline: false }
       );
 
@@ -388,7 +386,6 @@ client.on('interactionCreate', async (interaction) => {
 
     // 2. Boutons (Recrutement [Accepter/Refuser] & Fermeture de ticket)
     if (interaction.isButton()) {
-      // Gestion Boutons de Recrutement
       if (interaction.customId.startsWith('accept_') || interaction.customId.startsWith('refuse_')) {
         const [action, targetUserId] = interaction.customId.split('_');
         
@@ -409,18 +406,18 @@ client.on('interactionCreate', async (interaction) => {
             if (targetUser) {
               await targetUser.send({ embeds: [acceptEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
             }
-        }
-
-        const fields = originalEmbed.data.fields || [];
-        const updatedFields = fields.map(f => {
-          if (f.name === 'Statut du Dossier') {
-            return { name: 'Statut du Dossier', value: `✅ **ACCEPTÉ** par ${staffUser.tag}`, inline: false };
           }
-          return f;
-        });
 
-        originalEmbed.setColor(0x2ED573).setFields(updatedFields);
-        await interaction.editReply({ embeds: [originalEmbed], components: [] });
+          const fields = originalEmbed.data.fields || [];
+          const updatedFields = fields.map(f => {
+            if (f.name === 'Statut du Dossier') {
+              return { name: 'Statut du Dossier', value: `✅ **ACCEPTÉ** par ${staffUser.tag}`, inline: false };
+            }
+            return f;
+          });
+
+          originalEmbed.setColor(0x2ED573).setFields(updatedFields);
+          await interaction.editReply({ embeds: [originalEmbed], components: [] });
 
         } else if (action === 'refuse') {
           const modal = new ModalBuilder()
@@ -436,174 +433,171 @@ client.on('interactionCreate', async (interaction) => {
 
           modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
           await interaction.showModal(modal);
+        }
+      }
+
+      if (interaction.customId === 'close_ticket') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_close_ticket')
+          .setTitle('Fermeture du ticket');
+
+        const reasonInput = new TextInputBuilder()
+          .setCustomId('close_reason')
+          .setLabel('Raison de la fermeture :')
+          .setStyle(TextInputStyle.Paragraph)
+          .setPlaceholder('Ex: Problème résolu')
+          .setRequired(true);
+
+        modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+        return await interaction.showModal(modal);
       }
     }
 
-    // Gestion Fermeture de Ticket
-    if (interaction.customId === 'close_ticket') {
-      const modal = new ModalBuilder()
-        .setCustomId('modal_close_ticket')
-        .setTitle('Fermeture du ticket');
-
-      const reasonInput = new TextInputBuilder()
-        .setCustomId('close_reason')
-        .setLabel('Raison de la fermeture :')
-        .setStyle(TextInputStyle.Paragraph)
-        .setPlaceholder('Ex: Problème résolu')
-        .setRequired(true);
-
-      modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
-      return await interaction.showModal(modal);
-    }
-    }
-
-    // 3. Soumissions de Modals (Refus de recrutement & Fermeture de ticket)
+    // 3. Soumissions de Modals
     if (interaction.isModalSubmit()) {
-    // Modal Refus Recrutement
-    if (interaction.customId.startsWith('modal_refuse_')) {
-      const targetUserId = interaction.customId.replace('modal_refuse_', '');
-      const reason = interaction.fields.getTextInputValue('refuse_reason');
+      if (interaction.customId.startsWith('modal_refuse_')) {
+        const targetUserId = interaction.customId.replace('modal_refuse_', '');
+        const reason = interaction.fields.getTextInputValue('refuse_reason');
 
-      await interaction.deferUpdate();
+        await interaction.deferUpdate();
 
-      const staffUser = interaction.user;
-      const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+        const staffUser = interaction.user;
+        const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
 
-      const refuseEmbed = new EmbedBuilder()
-        .setTitle("🪪 Recrutement")
-        .setDescription(`Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Refusée.**\n\n❌ Bonjour. Nous vous informons que votre candidature pour **Urgence Lilloise** n'a malheureusement **pas été retenue**.\n\n📌 **Raison du refus :**\n> *${reason}*\n\nMerci pour l'intérêt que vous portez à notre serveur.`)
-        .setColor(0xE52D48)
-        .setThumbnail(LOGO_URL)
-        .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
+        const refuseEmbed = new EmbedBuilder()
+          .setTitle("🪪 Recrutement")
+          .setDescription(`Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Refusée.**\n\n❌ Bonjour. Nous vous informons que votre candidature pour **Urgence Lilloise** n'a malheureusement **pas été retenue**.\n\n📌 **Raison du refus :**\n> *${reason}*\n\nMerci pour l'intérêt que vous portez à notre serveur.`)
+          .setColor(0xE52D48)
+          .setThumbnail(LOGO_URL)
+          .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
 
-      if (targetUserId && targetUserId !== 'unknown') {
-        const targetUser = await client.users.fetch(targetUserId).catch(() => null);
-        if (targetUser) {
-          await targetUser.send({ embeds: [refuseEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+        if (targetUserId && targetUserId !== 'unknown') {
+          const targetUser = await client.users.fetch(targetUserId).catch(() => null);
+          if (targetUser) {
+            await targetUser.send({ embeds: [refuseEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+          }
         }
+
+        const fields = originalEmbed.data.fields || [];
+        const updatedFields = fields.map(f => {
+          if (f.name === 'Statut du Dossier') {
+            return { name: 'Statut du Dossier', value: `❌ **REFUSÉ** par ${staffUser.tag}\n**Raison :** \`\`\`\n${reason}\n\`\`\``, inline: false };
+          }
+          return f;
+        });
+
+        originalEmbed.setColor(0xE52D48).setFields(updatedFields);
+        await interaction.editReply({ embeds: [originalEmbed], components: [] });
       }
 
-      const fields = originalEmbed.data.fields || [];
-      const updatedFields = fields.map(f => {
-        if (f.name === 'Statut du Dossier') {
-          return { name: 'Statut du Dossier', value: `❌ **REFUSÉ** par ${staffUser.tag}\n**Raison :** \`\`\`\n${reason}\n\`\`\``, inline: false };
+      if (interaction.customId === 'modal_close_ticket') {
+        const closeReason = interaction.fields.getTextInputValue('close_reason');
+        await interaction.reply({ content: '🔒 Fermeture du ticket et génération du transcript en cours...', ephemeral: true });
+
+        const channel = interaction.channel;
+        const guild = interaction.guild;
+        const staffMember = interaction.user;
+        const ticketData = activeTickets.get(channel.id);
+
+        let targetUser = null;
+        if (ticketData) {
+          targetUser = await guild.members.fetch(ticketData.userId).catch(() => null);
         }
-        return f;
-      });
 
-      originalEmbed.setColor(0xE52D48).setFields(updatedFields);
-      await interaction.editReply({ embeds: [originalEmbed], components: [] });
-    }
+        let messagesCollection;
+        try {
+          messagesCollection = await channel.messages.fetch({ limit: 100 });
+        } catch {
+          messagesCollection = [];
+        }
 
-    // Modal Fermeture Ticket + Transcript
-    if (interaction.customId === 'modal_close_ticket') {
-      const closeReason = interaction.fields.getTextInputValue('close_reason');
-      await interaction.reply({ content: '🔒 Fermeture du ticket et génération du transcript en cours...', ephemeral: true });
+        const messages = Array.from(messagesCollection.values()).reverse();
+        const messageCount = messages.length;
 
-      const channel = interaction.channel;
-      const guild = interaction.guild;
-      const staffMember = interaction.user;
-      const ticketData = activeTickets.get(channel.id);
-
-      let targetUser = null;
-      if (ticketData) {
-        targetUser = await guild.members.fetch(ticketData.userId).catch(() => null);
-      }
-
-      let messagesCollection;
-      try {
-        messagesCollection = await channel.messages.fetch({ limit: 100 });
-      } catch {
-        messagesCollection = [];
-      }
-
-      const messages = Array.from(messagesCollection.values()).reverse();
-      const messageCount = messages.length;
-
-      let htmlContent = `
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Transcript - ${channel.name}</title>
-        <style>
-          body { background-color: #313338; color: #dbdee1; font-family: Arial, sans-serif; padding: 20px; }
-          .reason-box { background-color: #2b2d31; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #e52d48; }
-          .msg { margin-bottom: 15px; }
-          .author { font-weight: bold; color: #ffffff; }
-          .time { font-size: 11px; color: #949ba4; margin-left: 5px; }
-          .content { margin-top: 5px; white-space: pre-wrap; }
-        </style>
-      </head>
-      <body>
-        <h2>Transcript du salon : #${channel.name}</h2>
-        <div class="reason-box">
-          <strong>Raison de fermeture :</strong> ${closeReason}
-        </div>
-        <hr style="border: 0; border-top: 1px solid #4e5058;"><br>
-      `;
-
-      messages.forEach(m => {
-        const timeStr = new Date(m.createdTimestamp).toLocaleString();
-        htmlContent += `
-          <div class="msg">
-            <span class="author">${m.author.tag}</span><span class="time">${timeStr}</span>
-            <div class="content">${m.content || '[Contenu multimédia / Embed]'}</div>
+        let htmlContent = `
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Transcript - ${channel.name}</title>
+          <style>
+            body { background-color: #313338; color: #dbdee1; font-family: Arial, sans-serif; padding: 20px; }
+            .reason-box { background-color: #2b2d31; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #e52d48; }
+            .msg { margin-bottom: 15px; }
+            .author { font-weight: bold; color: #ffffff; }
+            .time { font-size: 11px; color: #949ba4; margin-left: 5px; }
+            .content { margin-top: 5px; white-space: pre-wrap; }
+          </style>
+        </head>
+        <body>
+          <h2>Transcript du salon : #${channel.name}</h2>
+          <div class="reason-box">
+            <strong>Raison de fermeture :</strong> ${closeReason}
           </div>
+          <hr style="border: 0; border-top: 1px solid #4e5058;"><br>
         `;
-      });
 
-      htmlContent += `</body></html>`;
-
-      const transcriptBuffer = Buffer.from(htmlContent, 'utf-8');
-      const transcriptAttachment = new AttachmentBuilder(transcriptBuffer, { name: `transcript-${channel.name}.html` });
-
-      let durationText = "Inconnue";
-      if (ticketData) {
-        const diffMs = Date.now() - ticketData.createdAt;
-        const diffMins = Math.floor(diffMs / 60000);
-        if (diffMins < 1) durationText = "Moins d'une minute";
-        else if (diffMins === 1) durationText = "1 minute";
-        else durationText = `${diffMins} minutes`;
-      }
-
-      const currentDateStr = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
-
-      const embedDetails = new EmbedBuilder()
-        .setColor('#e52d48')
-        .setTitle('🔒 Ticket Fermé')
-        .setDescription(`Ticket fermé sur **Urgence Lilloise**.`)
-        .setThumbnail(SERVER_ICON_URL)
-        .addFields(
-          { name: '📋 Type de ticket', value: `\`${channel.name}\``, inline: true },
-          { name: '👤 Fermé par', value: `\`${staffMember.tag}\``, inline: true },
-          { name: '📌 Raison', value: `\`\`\`\n${closeReason}\n\`\`\``, inline: false },
-          { name: '📅 Date de fermeture', value: `\`${currentDateStr}\``, inline: true },
-          { name: '⏱️ Durée du ticket', value: `\`${durationText}\``, inline: true },
-          { name: '📊 Nombre de messages', value: `${messageCount}`, inline: true },
-          { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint.', inline: false }
-        )
-        .setFooter({ text: 'Support — Urgence Lilloise' })
-        .setTimestamp();
-
-      if (targetUser) {
-        await targetUser.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(() => {
-          console.log("Impossible d'envoyer le MP au joueur (privés fermés).");
+        messages.forEach(m => {
+          const timeStr = new Date(m.createdTimestamp).toLocaleString();
+          htmlContent += `
+            <div class="msg">
+              <span class="author">${m.author.tag}</span><span class="time">${timeStr}</span>
+              <div class="content">${m.content || '[Contenu multimédia / Embed]'}</div>
+            </div>
+          `;
         });
+
+        htmlContent += `</body></html>`;
+
+        const transcriptBuffer = Buffer.from(htmlContent, 'utf-8');
+        const transcriptAttachment = new AttachmentBuilder(transcriptBuffer, { name: `transcript-${channel.name}.html` });
+
+        let durationText = "Inconnue";
+        if (ticketData) {
+          const diffMs = Date.now() - ticketData.createdAt;
+          const diffMins = Math.floor(diffMs / 60000);
+          if (diffMins < 1) durationText = "Moins d'une minute";
+          else if (diffMins === 1) durationText = "1 minute";
+          else durationText = `${diffMins} minutes`;
+        }
+
+        const currentDateStr = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
+
+        const embedDetails = new EmbedBuilder()
+          .setColor('#e52d48')
+          .setTitle('🔒 Ticket Fermé')
+          .setDescription(`Ticket fermé sur **Urgence Lilloise**.`)
+          .setThumbnail(SERVER_ICON_URL)
+          .addFields(
+            { name: '📋 Type de ticket', value: `\`${channel.name}\``, inline: true },
+            { name: '👤 Fermé par', value: `\`${staffMember.tag}\``, inline: true },
+            { name: '📌 Raison', value: `\`\`\`\n${closeReason}\n\`\`\``, inline: false },
+            { name: '📅 Date de fermeture', value: `\`${currentDateStr}\``, inline: true },
+            { name: '⏱️ Durée du ticket', value: `\`${durationText}\``, inline: true },
+            { name: '📊 Nombre de messages', value: `${messageCount}`, inline: true },
+            { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint.', inline: false }
+          )
+          .setFooter({ text: 'Support — Urgence Lilloise' })
+          .setTimestamp();
+
+        if (targetUser) {
+          await targetUser.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(() => {
+            console.log("Impossible d'envoyer le MP au joueur (privés fermés).");
+          });
+        }
+
+        const logsChannel = guild.channels.cache.get(TICKET_LOGS_CHANNEL_ID);
+        if (logsChannel) {
+          await logsChannel.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(err => {
+            console.error("Erreur lors de l'envoi dans le salon de transcript :", err);
+          });
+        }
+
+        activeTickets.delete(channel.id);
+
+        setTimeout(async () => {
+          await channel.delete().catch(() => {});
+        }, 3000);
       }
-
-      const logsChannel = guild.channels.cache.get(TICKET_LOGS_CHANNEL_ID);
-      if (logsChannel) {
-        await logsChannel.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(err => {
-          console.error("Erreur lors de l'envoi dans le salon de transcript :", err);
-        });
-      }
-
-      activeTickets.delete(channel.id);
-
-      setTimeout(async () => {
-        await channel.delete().catch(() => {});
-      }, 3000);
-    }
     }
 
   } catch (error) {
