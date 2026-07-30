@@ -26,64 +26,60 @@ const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1530783982877278213';
 const CANDIDATURE_DEST_CHANNEL_ID = '1530783985045606508';
 const TICKET_CHANNEL_ID = '1530783984143962204';
-const TICKET_LOGS_CHANNEL_ID = '1531727851680698379'; // Transcript
+const TICKET_LOGS_CHANNEL_ID = '1531727851680698379';
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
 const TICKET_BANNER_URL = 'https://media.discordapp.net/attachments/1530783984143962204/1532199713468841994/image.png?ex=6a6bfbae&is=6a6aaa2e&hm=f647b951b1389272d866ec5381b8fb42be9c70468ad5b1dc1e20f9eac077a586&=&format=webp&quality=lossless';
 const SERVER_ICON_URL = 'https://images-ext-1.discordapp.net/external/13dVJvwLxmIyN952nvst_nHPVhRaOG98o5eg0L09rUw/%3Fsize%3D256/https/cdn.discordapp.com/icons/1530783981988085853/01bad94e7ccac907a3d138d7575b101a.png?format=webp&quality=lossless';
 
-// Rôles Staff et Admin
-const STAFF_ROLE_ID = '1530783982197805117';
-const ADMIN_ROLE_ID = '1530783982197805122';
-
-// Correspondance des catégories de tickets avec tes nouveaux IDs
+// Correspondance exacte des catégories avec LEURS RÔLES SPÉCIFIQUES
 const TICKET_CATEGORIES = {
   'ticket_question': { 
     name: 'question', 
     categoryId: '1532213199863283712', 
     title: 'Question',
-    allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
+    allowedRoles: ['1530783982197805117'] 
   },
   'ticket_boutique': { 
     name: 'boutique', 
     categoryId: '1532213765431627816', 
     title: 'Boutique',
-    allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
+    allowedRoles: ['1530783982210519235'] 
   },
   'ticket_bug': { 
     name: 'bug-ig', 
     categoryId: '1532213885971599442', 
     title: 'Bug IG',
-    allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
+    allowedRoles: ['1530783982122303541'] 
   },
   'ticket_legal': { 
     name: 'legal', 
     categoryId: '1532214069556281434', 
     title: 'Légal',
-    allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
+    allowedRoles: ['1531701094709854339'] 
   },
   'ticket_illegal': { 
     name: 'illegal', 
     categoryId: '1532214202343751780', 
     title: 'Illégal',
-    allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
+    allowedRoles: ['1531701011029164252'] 
   },
   'ticket_unban': { 
     name: 'unban', 
     categoryId: '1532214399945936896', 
     title: 'Unban',
-    allowedRoles: [ADMIN_ROLE_ID] 
+    allowedRoles: ['1530783982180896887', '1530783982180896886', '1530783982151794743'] 
   },
   'ticket_plainte_joueur': { 
     name: 'plainte-joueur', 
     categoryId: '1532214555990818999', 
     title: 'Plainte Joueur',
-    allowedRoles: [STAFF_ROLE_ID, ADMIN_ROLE_ID] 
+    allowedRoles: ['1530783982197805117'] 
   },
   'ticket_plainte': { 
     name: 'plainte-staff', 
     categoryId: '1532214697485537381', 
     title: 'Plainte Staff',
-    allowedRoles: [ADMIN_ROLE_ID] 
+    allowedRoles: ['1530783982210519236'] 
   }
 };
 
@@ -213,8 +209,12 @@ client.on('interactionCreate', async (interaction) => {
         const user = interaction.user;
         const channelName = `${ticketInfo.name}-${user.username}`.toLowerCase().replace(/[^a-z0-9-_]/g, '');
         
-        // On donne uniquement accès au créateur du ticket, la catégorie gère le reste (staff/admin)
+        // Configuration stricte : @everyone bloque tout, le user et les rôles spécifiques ont les accès
         const permissionOverwrites = [
+          {
+            id: guild.roles.everyone.id,
+            deny: [PermissionsBitField.Flags.ViewChannel],
+          },
           {
             id: user.id,
             allow: [
@@ -225,20 +225,33 @@ client.on('interactionCreate', async (interaction) => {
           }
         ];
 
-        // Création du salon en héritant proprement des permissions de la catégorie parente
+        // Injection des rôles spécifiques de la catégorie
+        if (ticketInfo.allowedRoles) {
+          for (const roleId of ticketInfo.allowedRoles) {
+            permissionOverwrites.push({
+              id: roleId,
+              allow: [
+                PermissionsBitField.Flags.ViewChannel, 
+                PermissionsBitField.Flags.SendMessages, 
+                PermissionsBitField.Flags.ReadMessageHistory
+              ],
+            });
+          }
+        }
+
         const ticketChannel = await guild.channels.create({
           name: channelName,
           type: ChannelType.GuildText,
           parent: ticketInfo.categoryId,
           permissionOverwrites: permissionOverwrites,
-          lockPermissions: true // Utilise les permissions de la catégorie
+          lockPermissions: false // Ignore les restrictions de la catégorie parente pour forcer nos règles
         }).catch(err => {
           console.error("Erreur création salon:", err);
           return null;
         });
 
         if (!ticketChannel) {
-          return interaction.editReply({ content: '❌ Impossible de créer le salon du ticket. Vérifie les IDs de catégories ou les permissions du bot !' });
+          return interaction.editReply({ content: '❌ Impossible de créer le salon du ticket.' });
         }
 
         activeTickets.set(ticketChannel.id, {
@@ -261,9 +274,9 @@ client.on('interactionCreate', async (interaction) => {
             .setEmoji('🔒')
         );
 
-        // Ping du joueur + du rôle concerné
-        const roleToPing = ticketInfo.allowedRoles.includes(STAFF_ROLE_ID) ? STAFF_ROLE_ID : ADMIN_ROLE_ID;
-        await ticketChannel.send({ content: `${user} <@&${roleToPing}>`, embeds: [welcomeEmbed], components: [closeRow] });
+        // Construction dynamique du message de ping pour tous les rôles autorisés de la catégorie
+        const pings = ticketInfo.allowedRoles.map(rId => `<@&${rId}>`).join(' ');
+        await ticketChannel.send({ content: `${user} ${pings}`, embeds: [welcomeEmbed], components: [closeRow] });
 
         await interaction.editReply({ content: `✅ Votre ticket a été créé avec succès : ${ticketChannel}` });
       }
