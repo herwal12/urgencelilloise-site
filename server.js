@@ -276,7 +276,8 @@ client.on('interactionCreate', async (interaction) => {
           return interaction.reply({ content: '❌ Erreur : Catégorie invalide.', ephemeral: true });
         }
 
-        await interaction.deferReply({ ephemeral: true });
+        // CORRECTION ICI : Utilisation de deferUpdate pour acquérir instantanément l'interaction
+        await interaction.deferUpdate();
 
         const guild = interaction.guild;
         const user = interaction.user;
@@ -322,7 +323,7 @@ client.on('interactionCreate', async (interaction) => {
         });
 
         if (!ticketChannel) {
-          return interaction.editReply({ content: '❌ Impossible de créer le salon du ticket.' });
+          return interaction.followUp({ content: '❌ Impossible de créer le salon du ticket.', ephemeral: true });
         }
 
         activeTickets.set(ticketChannel.id, {
@@ -348,7 +349,7 @@ client.on('interactionCreate', async (interaction) => {
         const pings = ticketInfo.allowedRoles.map(rId => `<@&${rId}>`).join(' ');
         await ticketChannel.send({ content: `${user} ${pings}`, embeds: [welcomeEmbed], components: [closeRow] });
 
-        await interaction.editReply({ content: `✅ Votre ticket a été créé avec succès : ${ticketChannel}` });
+        await interaction.followUp({ content: `✅ Votre ticket a été créé avec succès : ${ticketChannel}`, ephemeral: true });
       }
     }
 
