@@ -219,12 +219,12 @@
     }
 
     .form-section-title {
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 800;
       color: #e52d48;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin: 22px 0 12px 0;
+      margin: 20px 0 12px 0;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -269,8 +269,7 @@
       cursor: pointer;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-top: 25px;
-      transition: background 0.2s;
+      margin-top: 20px;
     }
 
     .btn-submit:hover {
@@ -316,10 +315,19 @@
         <div class="job-card">
           <div>
             <div class="job-card-icon"><i class="fa-solid fa-user-shield"></i></div>
-            <h3>Modération & Support</h3>
+            <h3>Modération</h3>
             <p>Veille au bon déroulement du serveur en jeu et sur Discord. Assure le respect du règlement, gère la prise en charge des tickets et garantit une expérience RP fluide et de qualité pour tous les joueurs.</p>
           </div>
-          <button class="btn-apply" onclick="openModal('Modération & Support')">Postuler</button>
+          <button class="btn-apply" onclick="openModal('Modération')">Recrutement ouvert — postuler</button>
+        </div>
+
+        <div class="job-card">
+          <div>
+            <div class="job-card-icon"><i class="fa-solid fa-headset"></i></div>
+            <h3>Community Manager</h3>
+            <p>Incarne et fais rayonner Urgence Lilloise ! Représente le serveur à travers des lives, la création de contenus (TikTok/YouTube) et l'animation active de nos réseaux sociaux et de la communauté.</p>
+          </div>
+          <button class="btn-apply" style="background-color: #E52D48; opacity: 0.9; cursor: not-allowed; color: #FFFFFF;" disabled>Recrutement fermé</button>
         </div>
       </div>
     </div>
@@ -332,50 +340,44 @@
         <button class="close-btn" onclick="closeModal()">&times;</button>
       </div>
       <form id="applyForm">
-        <input type="hidden" id="roleInput" name="poste">
+        <input type="hidden" id="roleInput" name="service">
 
-        <div class="form-section-title"><i class="fa-brands fa-discord"></i> Informations Discord</div>
+        <div class="form-section-title"><i class="fa-brands fa-discord"></i> Informations : Discord</div>
         <div class="form-group">
           <label>Pseudo Discord :</label>
           <input type="text" name="discordTag" required placeholder="Ex: ymn_0ffcl">
         </div>
         <div class="form-group">
           <label>Identifiant Discord (ID Utilisateur) :</label>
-          <input type="text" name="discordId" required placeholder="Ex: 1424506197586739300">
+          <input type="text" name="discordId" required placeholder="Ex: 1525200263173112018">
         </div>
 
-        <div class="form-section-title"><i class="fa-solid fa-user"></i> Informations IRL</div>
+        <div class="form-section-title"><i class="fa-solid fa-user"></i> Informations : IRL</div>
         <div class="form-group">
           <label>Prénom :</label>
           <input type="text" name="prenom" required placeholder="Votre prénom...">
         </div>
         <div class="form-group">
           <label>Âge :</label>
-          <input type="number" name="age" required placeholder="Ex: 21">
+          <input type="number" name="age" required placeholder="Ex: 18">
+        </div>
+        <div class="form-group">
+          <label>Ambition :</label>
+          <textarea name="ambition" rows="2" required placeholder="Quelles sont vos ambitions au sein de la communauté ?"></textarea>
         </div>
 
-        <div class="form-section-title"><i class="fa-solid fa-user-pen"></i> Questions sur vous</div>
-        <div class="form-group">
-          <label>Quels sont vos motivations ?</label>
-          <textarea name="motivation" rows="3" required placeholder="Vos motivations..."></textarea>
-        </div>
+        <div class="form-section-title"><i class="fa-solid fa-fire"></i> Informations : Motivation</div>
         <div class="form-group">
           <label>Pourquoi vous et pas un autre ?</label>
-          <textarea name="pourquoiVous" rows="3" required placeholder="Ce qui vous différencie..."></textarea>
+          <textarea name="motivation" rows="3" required placeholder="Exposez vos motivations et vos atouts..."></textarea>
         </div>
         <div class="form-group">
-          <label>Selon vous, a quoi consiste le role d'un support ?</label>
-          <textarea name="roleSupport" rows="3" required placeholder="Votre vision du rôle..."></textarea>
-        </div>
-
-        <div class="form-section-title"><i class="fa-solid fa-scale-balanced"></i> Mise en situation</div>
-        <div class="form-group">
-          <label>Lorsqu'un joueur ouvre un ticket, vous devez :</label>
-          <textarea name="sitTicket" rows="3" required placeholder="Votre méthode de prise en charge..."></textarea>
+          <label>Vos expériences (si vous en avez, citez-les) :</label>
+          <textarea name="experience" rows="3" placeholder="Vos expériences passées en modération / administration..."></textarea>
         </div>
         <div class="form-group">
-          <label>Un autre support abuse de ses perms devant vous, que faites vous ?</label>
-          <textarea name="sitAbus" rows="3" required placeholder="Votre réaction face à cette situation..."></textarea>
+          <label>Dans vos mots, en quoi consiste le rôle d'un modérateur ?</label>
+          <textarea name="roleModerateur" rows="3" required placeholder="Expliquez votre vision du rôle de modérateur..."></textarea>
         </div>
 
         <button type="submit" class="btn-submit">Envoyer ma candidature</button>
@@ -426,3 +428,4 @@
   </script>
 </body>
 </html>
+
