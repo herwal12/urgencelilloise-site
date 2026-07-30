@@ -194,10 +194,51 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Route d'accueil pour afficher ta page HTML (views/index.ejs)
+// ================= Web Routes =================
 app.get('/', (req, res) => {
   res.render('index');
 });
+
+app.get('/recrutement', (req, res) => {
+  res.render('recrutement');
+});
+
+app.get('/reglement', (req, res) => {
+  res.render('reglement');
+});
+
+// Route pour traiter l'envoi du formulaire de recrutement vers Discord
+app.post('/recrutement', async (req, res) => {
+  try {
+    const { service, discordTag, discordId, prenom, age, ambition, motivation, experience, roleModerateur } = req.body;
+    
+    const channel = client.channels.cache.get(CANDIDATURE_DEST_CHANNEL_ID || RECRUTEMENT_CHANNEL_ID);
+    if (!channel) {
+      return res.status(500).json({ error: "Salon de recrutement introuvable sur Discord." });
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor('#e52d48')
+      .setTitle(`📄 Nouvelle candidature : ${service}`)
+      .addFields(
+        { name: '👤 Discord', value: `${discordTag} (<@${discordId}>)`, inline: false },
+        { name: '🆔 ID Discord', value: `\`${discordId}\``, inline: true },
+        { name: '👤 Prénom & Âge', value: `${prenom}, ${age} ans`, inline: true },
+        { name: '🎯 Ambition', value: ambition || 'Non renseigné', inline: false },
+        { name: '🔥 Motivation', value: motivation || 'Non renseigné', inline: false },
+        { name: '💼 Expérience', value: experience || 'Aucune', inline: false },
+        { name: '💡 Vision du rôle', value: roleModerateur || 'Non renseigné', inline: false }
+      )
+      .setTimestamp();
+
+    await channel.send({ embeds: [embed] });
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Erreur lors de l'envoi de la candidature:", err);
+    res.status(500).json({ error: "Erreur interne du serveur." });
+  }
+});
+// ==============================================
 
 client.on('interactionCreate', async (interaction) => {
   try {
@@ -390,9 +431,9 @@ client.on('interactionCreate', async (interaction) => {
             { name: '⏱️ Durée du ticket', value: `\`${durationText}\``, inline: true },
             { name: '📊 Nombre de messages', value: `${messageCount}`, inline: true },
             { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint.', inline: false }
-          )
-          .setFooter({ text: 'Support — Urgence Lilloise' })
-          .setTimestamp();
+        )
+        .setFooter({ text: 'Support — Urgence Lilloise' })
+        .setTimestamp();
 
         if (targetUser) {
           await targetUser.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(() => {
