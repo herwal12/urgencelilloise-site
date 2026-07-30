@@ -339,7 +339,7 @@ client.on('interactionCreate', async (interaction) => {
             .setEmoji('🔒')
         );
 
-        await ticketChannel.send({ content: `${user}`, embeds: [welcomeEmbed], components: [closeRow] });
+        await ticketChannel.send({ content: `${user} <@&1530783982197805117>`, embeds: [welcomeEmbed], components: [closeRow] });
 
         await interaction.editReply({ content: `✅ Votre ticket a été créé avec succès : ${ticketChannel}` });
       }
