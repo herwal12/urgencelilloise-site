@@ -489,7 +489,7 @@ client.on('interactionCreate', async (interaction) => {
         const embedDetails = new EmbedBuilder()
           .setColor('#e52d48')
           .setTitle('🔒 Ticket Fermé')
-          .setDescription(`Ticket fermé sur **Omerta RP**.`)
+          .setDescription(`Ticket fermé sur **Urgence Lilloise**.`)
           .setThumbnail(SERVER_ICON_URL)
           .addFields(
             { name: '📋 Type de ticket', value: `\`${channel.name}\``, inline: true },
@@ -500,7 +500,7 @@ client.on('interactionCreate', async (interaction) => {
             { name: '📊 Nombre de messages', value: `${messageCount}`, inline: true },
             { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint.', inline: false }
           )
-          .setFooter({ text: 'Support — Omerta RP' })
+          .setFooter({ text: 'Support — Urgence Lilloise' })
           .setTimestamp();
 
         // 1. Envoi au joueur en MP
