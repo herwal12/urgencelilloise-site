@@ -26,12 +26,12 @@ const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1530783982877278213';
 const CANDIDATURE_DEST_CHANNEL_ID = '1530783985045606508';
 const TICKET_CHANNEL_ID = '1530783984143962204';
-const TICKET_LOGS_CHANNEL_ID = '1531727851680698379';
+const TICKET_LOGS_CHANNEL_ID = '1531727851680698379'; // Salon de transcript
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
 const TICKET_BANNER_URL = 'https://media.discordapp.net/attachments/1530783984143962204/1532199713468841994/image.png?ex=6a6bfbae&is=6a6aaa2e&hm=f647b951b1389272d866ec5381b8fb42be9c70468ad5b1dc1e20f9eac077a586&=&format=webp&quality=lossless';
 const SERVER_ICON_URL = 'https://images-ext-1.discordapp.net/external/13dVJvwLxmIyN952nvst_nHPVhRaOG98o5eg0L09rUw/%3Fsize%3D256/https/cdn.discordapp.com/icons/1530783981988085853/01bad94e7ccac907a3d138d7575b101a.png?format=webp&quality=lossless';
 
-// Correspondance exacte des catégories avec LEURS RÔLES SPÉCIFIQUES
+// Correspondance exacte des catégories avec leurs rôles spécifiques
 const TICKET_CATEGORIES = {
   'ticket_question': { 
     name: 'question', 
@@ -83,6 +83,7 @@ const TICKET_CATEGORIES = {
   }
 };
 
+// Stockage pour le suivi des tickets actifs (ID du salon -> infos)
 const activeTickets = new Map();
 
 const client = new Client({
@@ -209,7 +210,6 @@ client.on('interactionCreate', async (interaction) => {
         const user = interaction.user;
         const channelName = `${ticketInfo.name}-${user.username}`.toLowerCase().replace(/[^a-z0-9-_]/g, '');
         
-        // Configuration stricte : @everyone bloque tout, le user et les rôles spécifiques ont les accès
         const permissionOverwrites = [
           {
             id: guild.roles.everyone.id,
@@ -225,7 +225,6 @@ client.on('interactionCreate', async (interaction) => {
           }
         ];
 
-        // Injection des rôles spécifiques de la catégorie
         if (ticketInfo.allowedRoles) {
           for (const roleId of ticketInfo.allowedRoles) {
             permissionOverwrites.push({
@@ -244,7 +243,7 @@ client.on('interactionCreate', async (interaction) => {
           type: ChannelType.GuildText,
           parent: ticketInfo.categoryId,
           permissionOverwrites: permissionOverwrites,
-          lockPermissions: false // Ignore les restrictions de la catégorie parente pour forcer nos règles
+          lockPermissions: false 
         }).catch(err => {
           console.error("Erreur création salon:", err);
           return null;
@@ -254,6 +253,7 @@ client.on('interactionCreate', async (interaction) => {
           return interaction.editReply({ content: '❌ Impossible de créer le salon du ticket.' });
         }
 
+        // Sauvegarde de l'ID utilisateur et de l'heure exacte de création
         activeTickets.set(ticketChannel.id, {
           userId: user.id,
           createdAt: Date.now()
@@ -274,7 +274,6 @@ client.on('interactionCreate', async (interaction) => {
             .setEmoji('🔒')
         );
 
-        // Construction dynamique du message de ping pour tous les rôles autorisés de la catégorie
         const pings = ticketInfo.allowedRoles.map(rId => `<@&${rId}>`).join(' ');
         await ticketChannel.send({ content: `${user} ${pings}`, embeds: [welcomeEmbed], components: [closeRow] });
 
@@ -292,6 +291,7 @@ client.on('interactionCreate', async (interaction) => {
           .setCustomId('close_reason')
           .setLabel('Raison de la fermeture :')
           .setStyle(TextInputStyle.Paragraph)
+          .setPlaceholder('Ex: Problème résolu')
           .setRequired(true);
 
         modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
@@ -302,9 +302,114 @@ client.on('interactionCreate', async (interaction) => {
     if (interaction.isModalSubmit()) {
       if (interaction.customId === 'modal_close_ticket') {
         const closeReason = interaction.fields.getTextInputValue('close_reason');
-        await interaction.reply({ content: '🔒 Fermeture en cours...', ephemeral: true });
+        await interaction.reply({ content: '🔒 Fermeture du ticket et génération du transcript en cours...', ephemeral: true });
 
         const channel = interaction.channel;
+        const guild = interaction.guild;
+        const staffMember = interaction.user;
+        const ticketData = activeTickets.get(channel.id);
+
+        let targetUser = null;
+        if (ticketData) {
+          targetUser = await guild.members.fetch(ticketData.userId).catch(() => null);
+        }
+
+        // Récupération des messages du salon pour le transcript HTML
+        let messagesCollection;
+        try {
+          messagesCollection = await channel.messages.fetch({ limit: 100 });
+        } catch {
+          messagesCollection = [];
+        }
+
+        const messages = Array.from(messagesCollection.values()).reverse();
+        const messageCount = messages.length;
+
+        let htmlContent = `
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Transcript - ${channel.name}</title>
+          <style>
+            body { background-color: #313338; color: #dbdee1; font-family: Arial, sans-serif; padding: 20px; }
+            .reason-box { background-color: #2b2d31; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #e52d48; }
+            .msg { margin-bottom: 15px; }
+            .author { font-weight: bold; color: #ffffff; }
+            .time { font-size: 11px; color: #949ba4; margin-left: 5px; }
+            .content { margin-top: 5px; white-space: pre-wrap; }
+          </style>
+        </head>
+        <body>
+          <h2>Transcript du salon : #${channel.name}</h2>
+          <div class="reason-box">
+            <strong>Raison de fermeture :</strong> ${closeReason}
+          </div>
+          <hr style="border: 0; border-top: 1px solid #4e5058;"><br>
+        `;
+
+        messages.forEach(m => {
+          const timeStr = new Date(m.createdTimestamp).toLocaleString();
+          htmlContent += `
+            <div class="msg">
+              <span class="author">${m.author.tag}</span><span class="time">${timeStr}</span>
+              <div class="content">${m.content || '[Contenu multimédia / Embed]'}</div>
+            </div>
+          `;
+        });
+
+        htmlContent += `</body></html>`;
+
+        const transcriptBuffer = Buffer.from(htmlContent, 'utf-8');
+        const transcriptAttachment = new AttachmentBuilder(transcriptBuffer, { name: `transcript-${channel.name}.html` });
+
+        // Calcul de la durée du ticket
+        let durationText = "Inconnue";
+        if (ticketData) {
+          const diffMs = Date.now() - ticketData.createdAt;
+          const diffMins = Math.floor(diffMs / 60000);
+          if (diffMins < 1) durationText = "Moins d'une minute";
+          else if (diffMins === 1) durationText = "1 minute";
+          else durationText = `${diffMins} minutes`;
+        }
+
+        const currentDateStr = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
+
+        // Embed mis aux couleurs et au nom d'Urgence Lilloise
+        const embedDetails = new EmbedBuilder()
+          .setColor('#e52d48')
+          .setTitle('🔒 Ticket Fermé')
+          .setDescription(`Ticket fermé sur **Urgence Lilloise**.`)
+          .setThumbnail(SERVER_ICON_URL)
+          .addFields(
+            { name: '📋 Type de ticket', value: `\`${channel.name}\``, inline: true },
+            { name: '👤 Fermé par', value: `\`${staffMember.tag}\``, inline: true },
+            { name: '📌 Raison', value: `\`\`\`\n${closeReason}\n\`\`\``, inline: false },
+            { name: '📅 Date de fermeture', value: `\`${currentDateStr}\``, inline: true },
+            { name: '⏱️ Durée du ticket', value: `\`${durationText}\``, inline: true },
+            { name: '📊 Nombre de messages', value: `${messageCount}`, inline: true },
+            { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint.', inline: false }
+          )
+          .setFooter({ text: 'Support — Urgence Lilloise' })
+          .setTimestamp();
+
+        // 1. Envoi au créateur en message privé (MP)
+        if (targetUser) {
+          await targetUser.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(() => {
+            console.log("Impossible d'envoyer le MP au joueur (privés fermés).");
+          });
+        }
+
+        // 2. Envoi dans le salon de transcript / logs
+        const logsChannel = guild.channels.cache.get(TICKET_LOGS_CHANNEL_ID);
+        if (logsChannel) {
+          await logsChannel.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(err => {
+            console.error("Erreur lors de l'envoi dans le salon de transcript :", err);
+          });
+        }
+
+        activeTickets.delete(channel.id);
+
+        // Suppression automatique du salon du ticket après 3 secondes
         setTimeout(async () => {
           await channel.delete().catch(() => {});
         }, 3000);
