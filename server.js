@@ -21,7 +21,23 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ==================== CONFIGURATION DISCORD & IDS ====================
+// ==================== MIDDLEWARES ====================
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// ==================== CONFIGURATION DISCORD ====================
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers
+    ]
+});
+
+// ID du Bot et Salons
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
 const RECRUTEMENT_CHANNEL_ID = '1530783982877278213';
@@ -37,67 +53,59 @@ const SERVER_ICON_URL = 'https://images-ext-1.discordapp.net/external/13VDJVwLxm
 
 // Correspondance des catégories de tickets
 const TICKET_CATEGORIES = {
-    'ticket_question': { name: 'question', categoryId: '153221319963283712', title: 'Question', allowedRoles: ['1530783982197805117'] },
-    'ticket_boutique': { name: 'boutique', categoryId: '1532213765431627816', title: 'Boutique', allowedRoles: ['1530783982210519235'] },
-    'ticket_bug': { name: 'bug-ig', categoryId: '153221388597159442', title: 'Bug IG', allowedRoles: ['1530783982212203541'] },
-    'ticket_legal': { name: 'legal', categoryId: '1532214069556281434', title: 'Légal', allowedRoles: ['1530783984709854339'] },
-    'ticket_illegal': { name: 'illegal', categoryId: '1532214202343751780', title: 'Illégal', allowedRoles: ['1530701011029164252'] },
-    'ticket_unban': { name: 'unban', categoryId: '1532214399945936896', title: 'Unban', allowedRoles: ['1530783982180896887', '1530783982180896886', '1530783982181794743'] },
-    'ticket_plainte_joueur': { name: 'plainte-joueur', categoryId: '153221455990818999', title: 'Plainte Joueur', allowedRoles: ['1530783982197805117'] },
-    'ticket_plainte': { name: 'plainte-staff', categoryId: '1532214697485537381', title: 'Plainte Staff', allowedRoles: ['1530783982210519236'] }
+    'ticket_question': { name: 'Question', categoryId: '153221319963283712', title: 'Question', allowedRoles: ['1530783982197805117'] },
+    'ticket_boutique': { name: 'Boutique', categoryId: '1532213765431627816', title: 'Boutique', allowedRoles: ['1530783982210519235'] },
+    'ticket_bug': { name: 'Bug IG', categoryId: '153221388597159442', title: 'Bug IG', allowedRoles: ['1530783982212203541'] },
+    'ticket_legal': { name: 'Légal', categoryId: '1532214069556281434', title: 'Légal', allowedRoles: ['1530783984709854339'] },
+    'ticket_illegal': { name: 'Illégal', categoryId: '1532214202343751780', title: 'Illégal', allowedRoles: ['1530701011029164252'] },
+    'ticket_unban': { name: 'Unban', categoryId: '1532214399945936896', title: 'Unban', allowedRoles: ['1530783982180896887', '1530783982180896886', '1530783982181794743'] },
+    'ticket_plainte_joueur': { name: 'Plainte Joueur', categoryId: '153221455990818999', title: 'Plainte Joueur', allowedRoles: ['1530783982197805117'] },
+    'ticket_plainte': { name: 'Plainte Staff', categoryId: '1532214697485537381', title: 'Plainte Staff', allowedRoles: ['1530783982210519236'] }
 };
 
 // Map pour suivre les tickets actifs en mémoire
 const activeTickets = new Map();
 
-// ==================== CONFIGURATION EXPRESS ====================
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-const applyLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 5,
-    message: { error: "Trop de tentatives, veuillez réessayer plus tard." }
+// ==================== ROUTES WEB ====================
+app.get('/', (req, res) => {
+    res.render('index');
 });
 
-// ==================== ROUTES WEB ====================
-app.get('/', (req, res) => res.render('index'));
-app.get('/recrutement', (req, res) => res.render('recrutement'));
-app.get('/boutique', (req, res) => res.render('boutique'));
-app.get('/reglement', (req, res) => res.render('reglement'));
+app.get('/recrutement', (req, res) => {
+    res.render('recrutement');
+});
+
+app.get('/boutique', (req, res) => {
+    res.render('boutique');
+});
+
+app.get('/reglement', (req, res) => {
+    res.render('reglement');
+});
 
 // Envoi de candidature depuis le site web
-app.post('/recrutement', applyLimiter, async (req, res) => {
+app.post('/recrutement', async (req, res) => {
     try {
-        const { poste, discordTag, discordId, prenom, age, pourquoiVous, experiences, roleModerateur } = req.body;
-        
-        // Récupération sécurisée du champ d'ambition selon le format transmis par le formulaire HTML
-        const vosAmbitions = req.body.ambition || req.body['Vos ambitions dans notre staff'] || req.body['Vos ambitions'] || 'Aucune';
+        const { poste, discordTag, discordId, prenom, age, 'Vos ambitions dans notre staff': ambition, pourquoiVous, experiences, roleModerateur } = req.body;
 
         const guild = client.guilds.cache.first();
         if (!guild) return res.status(500).json({ error: "Serveur Discord introuvable pour le bot." });
 
-        const channel = await guild.channels.fetch(CANDIDATURE_DEST_CHANNEL_ID).catch(() => null);
+        const channel = await guild.channels.fetch(CANDIDATURE_DEST_CHANNEL_ID);
         if (!channel) return res.status(500).json({ error: "Salon de destination des candidatures introuvable." });
 
-        const postName = poste ? poste.toUpperCase() : 'MODÉRATION & SUPPORT';
-
         const embed = new EmbedBuilder()
+            .setTitle(`📥 Nouvelle Candidature : ${poste || 'Modération'}`)
             .setColor('#e52d48')
-            .setTitle(`DOSSIER DE CANDIDATURE — ${postName}`)
             .setThumbnail(SERVER_ICON_URL)
             .addFields(
-                { name: 'Identification Discord', value: `• **Compte :** \`${discordTag || 'Inconnu'}\`\n• **ID :** \`${discordId || 'Inconnu'}\``, inline: false },
-                { name: 'Informations IRL', value: `• **Prénom :** ${prenom || 'Non renseigné'}\n• **Âge :** ${age || 'Non renseigné'} ans`, inline: false },
-                { name: 'Vos ambitions dans notre staff', value: `\`\`\`text\n${vosAmbitions}\n\`\`\``, inline: false },
-                { name: '🔥 INFORMATIONS : MOTIVATION', value: '----------------------------------------', inline: false },
-                { name: 'Pourquoi vous et pas un autre ?', value: `\`\`\`text\n${pourquoiVous || 'Aucune'}\n\`\`\``, inline: false },
-                { name: 'Vos expériences :', value: `\`\`\`text\n${experiences || 'Aucune'}\n\`\`\``, inline: false },
-                { name: 'Dans vos mots, en quoi consiste le rôle d\'un modérateur ?', value: `\`\`\`text\n${roleModerateur || 'Aucune'}\n\`\`\``, inline: false },
-                { name: 'Statut du Dossier', value: '⏳ **EN ATTENTE DE TRAITEMENT**', inline: false }
+                { name: '👤 Pseudo Discord', value: discordTag || 'Non spécifié', inline: true },
+                { name: '🆔 ID Discord', value: discordId || 'Non spécifié', inline: true },
+                { name: '📌 Prénom / Âge', value: `${prenom || 'N/A'} (${age || 'N/A'} ans)`, inline: true },
+                { name: '🎯 Vos ambitions dans notre staff', value: ambition || 'Aucune ambition renseignée' },
+                { name: '🔥 Pourquoi vous ?', value: pourquoiVous || 'Non renseigné' },
+                { name: '💼 Expériences', value: experiences || 'Aucune expérience mentionnée' },
+                { name: '🛡️ Rôle d\'un modérateur', value: roleModerateur || 'Non renseigné' }
             )
             .setTimestamp()
             .setFooter({ text: 'Urgence Lilloise — Système de Recrutement', iconURL: LOGO_URL });
@@ -109,31 +117,21 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
             new ButtonBuilder().setCustomId(`refuse_${targetId}`).setLabel('Refuser').setStyle(ButtonStyle.Danger)
         );
 
-        const pingRoles = '<@&1530783982197805121> <@&1530783982210519232>';
-        await channel.send({ content: `${pingRoles} 🔔 **Nouvelle candidature reçue !**`, embeds: [embed], components: [row] });
-        
-        res.status(200).json({ success: true, message: "Candidature envoyée avec succès !" });
+        await channel.send({ embeds: [embed], components: [row] });
+        res.status(200).json({ success: true });
     } catch (error) {
         console.error("Erreur lors de l'envoi de la candidature:", error);
         res.status(500).json({ error: "Erreur interne du serveur." });
     }
 });
 
-// ==================== CONFIGURATION DISCORD CLIENT ====================
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMembers
-    ]
-});
+// ==================== ÉVÉNEMENTS DISCORD (BOT) ====================
 
 client.once('ready', async () => {
     console.log(`🤖 Bot connecté en tant que ${client.user.tag}`);
 
     try {
-        // Envoi automatique ou vérification du panel de tickets
+        // Envoi automatique du panel de tickets si le salon est configuré
         const ticketChannel = await client.channels.fetch(TICKET_CHANNEL_ID).catch(() => null);
         if (ticketChannel) {
             const messages = await ticketChannel.messages.fetch({ limit: 10 }).catch(() => null);
@@ -141,22 +139,21 @@ client.once('ready', async () => {
 
             if (!hasPanel) {
                 const embed = newEmbedTicketPanel();
-                const selectMenu = new StringSelectMenuBuilder()
-                    .setCustomId('ticket_select_menu')
-                    .setPlaceholder('Sélectionne ce que tu as besoin.')
-                    .addOptions([
-                        new StringSelectMenuOptionBuilder().setLabel('Question').setDescription('Une question générale').setValue('ticket_question').setEmoji('💬'),
-                        new StringSelectMenuOptionBuilder().setLabel('Boutique').setDescription('Achat, paiement boutique').setValue('ticket_boutique').setEmoji('🛒'),
-                        new StringSelectMenuOptionBuilder().setLabel('Bug IG').setDescription('Signaler un bug en jeu').setValue('ticket_bug').setEmoji('💢'),
-                        new StringSelectMenuOptionBuilder().setLabel('Légal').setDescription('Reprise entreprise légale').setValue('ticket_legal').setEmoji('💵'),
-                        new StringSelectMenuOptionBuilder().setLabel('Illégal').setDescription('Reprise de groupe illégal').setValue('ticket_illegal').setEmoji('💼'),
-                        new StringSelectMenuOptionBuilder().setLabel('Unban').setDescription('Demande de débannissement').setValue('ticket_unban').setEmoji('🍓'),
-                        new StringSelectMenuOptionBuilder().setLabel('Plainte Joueur').setDescription('Signaler un joueur').setValue('ticket_plainte_joueur').setEmoji('⚖️'),
-                        new StringSelectMenuOptionBuilder().setLabel('Plainte Staff').setDescription('Signaler un staff').setValue('ticket_plainte').setEmoji('🚨'),
-                    ]);
-                const row = new ActionRowBuilder().addComponents(selectMenu);
+                const row = new ActionRowBuilder().addComponents(
+                    new StringSelectMenuBuilder()
+                        .setCustomId('ticket_menu_select')
+                        .setPlaceholder('📂 Sélectionnez le motif de votre ticket...')
+                        .addOptions(
+                            Object.keys(TICKET_CATEGORIES).map(key => 
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel(TICKET_CATEGORIES[key].name)
+                                    .setValue(key)
+                                    .setDescription(`Ouvrir un ticket pour ${TICKET_CATEGORIES[key].name}`)
+                            )
+                        )
+                );
                 await ticketChannel.send({ embeds: [embed], components: [row] });
-                console.log("✅ Panel de tickets initialisé automatiquement !");
+                console.log("✅ Panel de tickets envoyé avec succès !");
             }
         }
     } catch (e) {
@@ -174,11 +171,11 @@ function newEmbedTicketPanel() {
         .setFooter({ text: 'Urgence Lilloise — Système de Support', iconURL: LOGO_URL });
 }
 
-// ==================== GESTION DES MESSAGES (COMMANDES TEXTES) ====================
+// Gestion des messages (Commandes textuelles et !ticket)
 client.on('messageCreate', async message => {
     if (message.author.bot || !message.guild) return;
 
-    // Commandes exécutables à l'intérieur d'un salon de ticket actif
+    // Commandes exécutables à l'intérieur d'un salon de ticket actif (.rename, .add, .del)
     if (activeTickets.has(message.channel.id)) {
         const args = message.content.trim().split(/ +/);
         const command = args.shift().toLowerCase();
@@ -222,20 +219,19 @@ client.on('messageCreate', async message => {
         try {
             await message.delete().catch(() => {});
             const embed = newEmbedTicketPanel();
-            const selectMenu = new StringSelectMenuBuilder()
-                .setCustomId('ticket_select_menu')
-                .setPlaceholder('Sélectionne ce que tu as besoin.')
-                .addOptions([
-                    new StringSelectMenuOptionBuilder().setLabel('Question').setDescription('Une question générale').setValue('ticket_question').setEmoji('💬'),
-                    new StringSelectMenuOptionBuilder().setLabel('Boutique').setDescription('Achat, paiement boutique').setValue('ticket_boutique').setEmoji('🛒'),
-                    new StringSelectMenuOptionBuilder().setLabel('Bug IG').setDescription('Signaler un bug en jeu').setValue('ticket_bug').setEmoji('💢'),
-                    new StringSelectMenuOptionBuilder().setLabel('Légal').setDescription('Reprise entreprise légale').setValue('ticket_legal').setEmoji('💵'),
-                    new StringSelectMenuOptionBuilder().setLabel('Illégal').setDescription('Reprise de groupe illégal').setValue('ticket_illegal').setEmoji('💼'),
-                    new StringSelectMenuOptionBuilder().setLabel('Unban').setDescription('Demande de débannissement').setValue('ticket_unban').setEmoji('🍓'),
-                    new StringSelectMenuOptionBuilder().setLabel('Plainte Joueur').setDescription('Signaler un joueur').setValue('ticket_plainte_joueur').setEmoji('⚖️'),
-                    new StringSelectMenuOptionBuilder().setLabel('Plainte Staff').setDescription('Signaler un staff').setValue('ticket_plainte').setEmoji('🚨'),
-                ]);
-            const row = new ActionRowBuilder().addComponents(selectMenu);
+            const row = new ActionRowBuilder().addComponents(
+                new StringSelectMenuBuilder()
+                    .setCustomId('ticket_menu_select')
+                    .setPlaceholder('📂 Sélectionnez le motif de votre ticket...')
+                    .addOptions(
+                        Object.keys(TICKET_CATEGORIES).map(key => 
+                            new StringSelectMenuOptionBuilder()
+                                .setLabel(TICKET_CATEGORIES[key].name)
+                                .setValue(key)
+                                .setDescription(`Ouvrir un ticket pour ${TICKET_CATEGORIES[key].name}`)
+                        )
+                    )
+            );
             await message.channel.send({ embeds: [embed], components: [row] });
         } catch (err) {
             console.error("Erreur avec la commande !ticket :", err);
@@ -243,60 +239,102 @@ client.on('messageCreate', async message => {
     }
 });
 
-// ==================== GESTION DES INTERACTIONS ====================
+// Interactions (Boutons, Menus Déroulants et Modales Discord)
 client.on('interactionCreate', async interaction => {
     try {
-        // Menu déroulant de sélection des tickets
-        if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_select_menu') {
-            const selectedValue = interaction.values[0];
-            const ticketInfo = TICKET_CATEGORIES[selectedValue];
-            if (!ticketInfo) return interaction.reply({ content: '❌ Catégorie de ticket invalide.', ephemeral: true });
+        // Gestion du menu déroulant des tickets
+        if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_menu_select') {
+            const selectedKey = interaction.values[0];
+            const categoryData = TICKET_CATEGORIES[selectedKey];
+
+            if (!categoryData) {
+                return interaction.reply({ content: '❌ Catégorie de ticket invalide.', ephemeral: true });
+            }
+
+            const guild = interaction.guild;
+            const member = interaction.member;
 
             await interaction.deferReply({ ephemeral: true });
-            const guild = interaction.guild;
-            const user = interaction.user;
-            const channelName = `${ticketInfo.name}-${user.username}`.toLowerCase().replace(/[^a-z0-9-_]/g, '');
 
+            // Création du salon privé
+            const channelName = `ticket-${member.user.username}`.toLowerCase().replace(/[^a-z0-9]/g, '');
             const permissionOverwrites = [
-                { id: guild.roles.everyone.id, deny: [PermissionsBitField.Flags.ViewChannel] },
-                { id: user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.AttachFiles] }
+                {
+                    id: guild.id,
+                    deny: [PermissionsBitField.Flags.ViewChannel],
+                },
+                {
+                    id: member.id,
+                    allow: [
+                        PermissionsBitField.Flags.ViewChannel,
+                        PermissionsBitField.Flags.SendMessages,
+                        PermissionsBitField.Flags.ReadMessageHistory,
+                        PermissionsBitField.Flags.AttachFiles
+                    ],
+                }
             ];
 
-            if (ticketInfo.allowedRoles) {
-                for (const roleId of ticketInfo.allowedRoles) {
-                    permissionOverwrites.push({ id: roleId, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory, PermissionsBitField.Flags.AttachFiles] });
+            if (categoryData.allowedRoles) {
+                for (const roleId of categoryData.allowedRoles) {
+                    permissionOverwrites.push({
+                        id: roleId,
+                        allow: [
+                            PermissionsBitField.Flags.ViewChannel,
+                            PermissionsBitField.Flags.SendMessages,
+                            PermissionsBitField.Flags.ReadMessageHistory,
+                            PermissionsBitField.Flags.AttachFiles
+                        ]
+                    });
                 }
             }
 
             const ticketChannel = await guild.channels.create({
                 name: channelName,
                 type: ChannelType.GuildText,
-                parent: ticketInfo.categoryId || null,
+                parent: categoryData.categoryId || null,
                 permissionOverwrites: permissionOverwrites,
-                lockPermissions: false
             }).catch(() => null);
 
-            if (!ticketChannel) return interaction.editReply({ content: '❌ Erreur lors de la création du salon.' });
+            if (!ticketChannel) {
+                return interaction.editReply({ content: '❌ Une erreur est survenue lors de la création du salon.' });
+            }
 
-            activeTickets.set(ticketChannel.id, { userId: user.id, createdAt: Date.now() });
+            activeTickets.set(ticketChannel.id, { userId: member.id, createdAt: Date.now() });
 
             const welcomeEmbed = new EmbedBuilder()
+                .setTitle(`🎫 Ticket : ${categoryData.name}`)
+                .setDescription(`Bonjour ${member}, bienvenue dans votre ticket.\nUn membre du staff va prendre en charge votre demande dans les plus brefs délais.\n\nCliquez sur le bouton ci-dessous pour fermer le ticket lorsque votre problème est résolu.`)
                 .setColor('#e52d48')
-                .setTitle(`Ticket : ${ticketInfo.title}`)
-                .setDescription(`Bonjour ${user}, bienvenue dans votre ticket.\nUn membre du staff va prendre en charge votre demande dans les plus brefs délais.\n\nCliquez sur le bouton ci-dessous pour fermer le ticket lorsque votre problème est résolu.`)
                 .setTimestamp();
 
             const closeRow = new ActionRowBuilder().addComponents(
                 new ButtonBuilder().setCustomId('close_ticket').setLabel('Fermer le ticket').setStyle(ButtonStyle.Danger).setEmoji('🔒')
             );
 
-            const pings = ticketInfo.allowedRoles ? ticketInfo.allowedRoles.map(rId => `<@&${rId}>`).join(' ') : '';
-            await ticketChannel.send({ content: `${user} ${pings}`, embeds: [welcomeEmbed], components: [closeRow] });
+            const pings = categoryData.allowedRoles ? categoryData.allowedRoles.map(rId => `<@&${rId}>`).join(' ') : '';
+            await ticketChannel.send({ content: `${member} ${pings}`, embeds: [welcomeEmbed], components: [closeRow] });
             await interaction.editReply({ content: `✅ Votre ticket a été créé avec succès : ${ticketChannel}` });
         }
 
-        // Boutons (Candidatures & Fermeture de ticket)
+        // Gestion des boutons (Fermeture de ticket et Acceptation/Refus de candidatures)
         if (interaction.isButton()) {
+            // Fermeture de ticket -> Ouvre la modale de motif
+            if (interaction.customId === 'close_ticket') {
+                const modal = new ModalBuilder()
+                    .setCustomId('modal_close_ticket')
+                    .setTitle('Fermeture du ticket');
+
+                const reasonInput = new TextInputBuilder()
+                    .setCustomId('close_reason')
+                    .setLabel('Raison de la fermeture :')
+                    .setStyle(TextInputStyle.Paragraph)
+                    .setRequired(true);
+
+                modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+                return await interaction.showModal(modal);
+            }
+
+            // Candidatures : Accepter ou Refuser
             if (interaction.customId.startsWith('accept_') || interaction.customId.startsWith('refuse_')) {
                 const [action, targetUserId] = interaction.customId.split('_');
 
@@ -318,11 +356,16 @@ client.on('interactionCreate', async interaction => {
 
                     const fields = originalEmbed.data.fields || [];
                     const updatedFields = fields.map(f => {
-                        if (f.name === 'Statut du Dossier') {
-                            return { name: 'Statut du Dossier', value: `✅ **ACCEPTÉ** par ${staffUser.tag}`, inline: false };
+                        if (f.name === '📌 Statut' || f.name === 'Statut du Dossier') {
+                            return { name: '📌 Statut', value: `✅ Acceptée par ${staffUser.tag}`, inline: false };
                         }
                         return f;
                     });
+
+                    // Si le champ Statut n'existait pas encore dans les vieux messages
+                    if (!fields.some(f => f.name === '📌 Statut')) {
+                        updatedFields.push({ name: '📌 Statut', value: `✅ Acceptée par ${staffUser.tag}`, inline: false });
+                    }
 
                     originalEmbed.setColor(0x2ED573).setFields(updatedFields);
                     await interaction.editReply({ embeds: [originalEmbed], components: [] });
@@ -341,21 +384,6 @@ client.on('interactionCreate', async interaction => {
                     modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
                     await interaction.showModal(modal);
                 }
-            }
-
-            if (interaction.customId === 'close_ticket') {
-                const modal = new ModalBuilder()
-                    .setCustomId('modal_close_ticket')
-                    .setTitle('Fermeture du ticket');
-
-                const reasonInput = new TextInputBuilder()
-                    .setCustomId('close_reason')
-                    .setLabel('Raison :')
-                    .setStyle(TextInputStyle.Paragraph)
-                    .setRequired(true);
-
-                modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
-                return await interaction.showModal(modal);
             }
         }
 
@@ -382,11 +410,15 @@ client.on('interactionCreate', async interaction => {
 
                 const fields = originalEmbed.data.fields || [];
                 const updatedFields = fields.map(f => {
-                    if (f.name === 'Statut du Dossier') {
-                        return { name: 'Statut du Dossier', value: `❌ **REFUSÉ** par ${staffUser.tag}\n**Raison :** ${reason}`, inline: false };
+                    if (f.name === '📌 Statut' || f.name === 'Statut du Dossier') {
+                        return { name: '📌 Statut', value: `❌ Refusée par ${staffUser.tag}\n**Raison :** ${reason}`, inline: false };
                     }
                     return f;
                 });
+
+                if (!fields.some(f => f.name === '📌 Statut')) {
+                    updatedFields.push({ name: '📌 Statut', value: `❌ Refusée par ${staffUser.tag}\n**Raison :** ${reason}`, inline: false });
+                }
 
                 originalEmbed.setColor(0xE52D48).setFields(updatedFields);
                 await interaction.editReply({ embeds: [originalEmbed], components: [] });
@@ -409,7 +441,7 @@ client.on('interactionCreate', async interaction => {
 
 // ==================== LANCEMENT DU SERVEUR ====================
 client.login(DISCORD_BOT_TOKEN).catch(err => {
-    console.error("❌ Erreur de connexion du Bot Discord :", err);
+    console.error("❌ Erreur de connexion du Bot Discord : Vérifie ton token dans le code ou tes variables d'environnement.", err);
 });
 
 app.listen(PORT, () => {
