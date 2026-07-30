@@ -26,6 +26,7 @@ const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const RECRUTEMENT_CHANNEL_ID = '1530783982877278213'; // Salon pour envoyer le panel !panel
 const CANDIDATURE_DEST_CHANNEL_ID = '1530783985045606508'; // Salon où arrivent les candidatures du site
 const TICKET_CHANNEL_ID = '1530783984143962204'; // Salon pour envoyer le panel de tickets !ticket
+const TICKET_LOGS_CHANNEL_ID = '1531727851680698379'; // Salon où envoyer les logs et transcripts des tickets fermés
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
 const TICKET_BANNER_URL = 'https://media.discordapp.net/attachments/1530783984143962204/1532199713468841994/image.png?ex=6a6bfbae&is=6a6aaa2e&hm=f647b951b1389272d866ec5381b8fb42be9c70468ad5b1dc1e20f9eac077a586&=&format=webp&quality=lossless';
 const SERVER_ICON_URL = 'https://images-ext-1.discordapp.net/external/13dVJvwLxmIyN952nvst_nHPVhRaOG98o5eg0L09rUw/%3Fsize%3D256/https/cdn.discordapp.com/icons/1530783981988085853/01bad94e7ccac907a3d138d7575b101a.png?format=webp&quality=lossless';
@@ -258,7 +259,7 @@ client.on('interactionCreate', async (interaction) => {
           return interaction.editReply({ content: '❌ Impossible de créer le salon du ticket. Vérifiez les IDs de catégorie.' });
         }
 
-        // Sauvegarde des métadonnées du ticket (propriétaire et heure de création)
+        // Sauvegarde des métadonnées du ticket
         activeTickets.set(ticketChannel.id, {
           userId: user.id,
           createdAt: Date.now()
@@ -286,7 +287,7 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     if (interaction.isButton()) {
-      // Fermeture du ticket avec transcript et envoi en MP
+      // Fermeture du ticket avec transcript, envoi en MP et envoi dans le salon de logs
       if (interaction.customId === 'close_ticket') {
         await interaction.reply({ content: '🔒 Fermeture du ticket et génération du transcript...', ephemeral: true });
 
@@ -311,7 +312,7 @@ client.on('interactionCreate', async (interaction) => {
         const messages = Array.from(messagesCollection.values()).reverse();
         const messageCount = messages.length;
 
-        // Génération d'un fichier HTML simple pour le transcript
+        // Génération du HTML du transcript
         let htmlContent = `
         <html>
         <head>
@@ -357,10 +358,10 @@ client.on('interactionCreate', async (interaction) => {
 
         const currentDateStr = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
 
-        const dmEmbed = new EmbedBuilder()
+        const embedDetails = new EmbedBuilder()
           .setColor('#e52d48')
           .setTitle('🔒 Ticket Fermé')
-          .setDescription(`Votre ticket sur **Omerta RP** a été fermé par le staff.`)
+          .setDescription(`Ticket fermé sur **Omerta RP**.`)
           .setThumbnail(SERVER_ICON_URL)
           .addFields(
             { name: '📋 Type de ticket', value: `\`${channel.name}\``, inline: true },
@@ -369,15 +370,26 @@ client.on('interactionCreate', async (interaction) => {
             { name: '📅 Date de fermeture', value: `\`${currentDateStr}\``, inline: false },
             { name: '⏱️ Durée du ticket', value: `\`${durationText}\``, inline: false },
             { name: '📊 Nombre de messages', value: `${messageCount}`, inline: false },
-            { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint à ce message.', inline: false }
+            { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint.', inline: false }
           )
           .setFooter({ text: 'Support — Omerta RP' })
           .setTimestamp();
 
-        // Envoi du MP au joueur
+        // 1. Envoi au joueur en MP
         if (targetUser) {
-          await targetUser.send({ embeds: [dmEmbed], files: [transcriptAttachment] }).catch(() => {
+          await targetUser.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(() => {
             console.log("Impossible d'envoyer le MP au joueur (privés fermés).");
+          });
+        }
+
+        // 2. Envoi dans le salon de logs (1531727851680698379)
+        const logsChannel = guild.channels.cache.get(TICKET_LOGS_CHANNEL_ID);
+        if (logsChannel) {
+          const logEmbed = EmbedBuilder.from(embedDetails)
+            .setDescription(`Ticket \`${channel.name}\` fermé par ${staffMember} (Propriétaire : ${targetUser || 'Inconnu'})`);
+          
+          await logsChannel.send({ embeds: [logEmbed], files: [transcriptAttachment] }).catch(err => {
+            console.error("Erreur lors de l'envoi dans le salon de logs :", err);
           });
         }
 
