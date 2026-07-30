@@ -207,10 +207,10 @@ app.get('/reglement', (req, res) => {
   res.render('reglement');
 });
 
-// Route pour traiter l'envoi du formulaire de recrutement vers Discord
+// Route pour traiter l'envoi du formulaire de recrutement vers Discord (Mis en forme complète)
 app.post('/recrutement', async (req, res) => {
   try {
-    const { service, discordTag, discordId, prenom, age, ambition, motivation, experience, roleModerateur } = req.body;
+    const { poste, discordTag, discordId, prenom, age, ambition, pourquoiVous, experiences, roleModerateur } = req.body;
     
     const channel = client.channels.cache.get(CANDIDATURE_DEST_CHANNEL_ID || RECRUTEMENT_CHANNEL_ID);
     if (!channel) {
@@ -218,20 +218,44 @@ app.post('/recrutement', async (req, res) => {
     }
 
     const embed = new EmbedBuilder()
-      .setColor('#e52d48')
-      .setTitle(`📄 Nouvelle candidature : ${service}`)
+      .setColor('#2ed573')
+      .setTitle(`DOSSIER DE CANDIDATURE — ${poste ? poste.toUpperCase() : 'MODÉRATION'}`)
+      .setThumbnail(SERVER_ICON_URL)
       .addFields(
-        { name: '👤 Discord', value: `${discordTag} (<@${discordId}>)`, inline: false },
-        { name: '🆔 ID Discord', value: `\`${discordId}\``, inline: true },
-        { name: '👤 Prénom & Âge', value: `${prenom}, ${age} ans`, inline: true },
-        { name: '🎯 Ambition', value: ambition || 'Non renseigné', inline: false },
-        { name: '🔥 Motivation', value: motivation || 'Non renseigné', inline: false },
-        { name: '💼 Expérience', value: experience || 'Aucune', inline: false },
-        { name: '💡 Vision du rôle', value: roleModerateur || 'Non renseigné', inline: false }
+        { 
+          name: 'Identification Discord', 
+          value: `• **Compte :** \`${discordTag || 'Non spécifié'}\`\n• **ID :** \`${discordId || 'Non spécifié'}\``, 
+          inline: false 
+        },
+        { 
+          name: 'Informations IRL', 
+          value: `• **Prénom :** ${prenom || 'N/A'}\n• **Âge :** ${age || 'N/A'} ans`, 
+          inline: false 
+        },
+        { 
+          name: 'Vos ambitions dans notre staff', 
+          value: `\`\`\`text\n${ambition || 'Aucune ambition renseignée'}\n\`\`\``, 
+          inline: false 
+        },
+        { 
+          name: '🔥 INFORMATIONS : MOTIVATION\n--------------------------------------------------', 
+          value: `**Pourquoi vous et pas un autre ?**\n\`\`\`text\n${pourquoiVous || 'Non renseigné'}\n\`\`\`\n**Vos expériences :**\n\`\`\`text\n${experiences || 'Aucune expérience mentionnée'}\n\`\`\`\n**Dans vos mots, en quoi consiste le rôle d'un modérateur ?**\n\`\`\`text\n${roleModerateur || 'Non renseigné'}\n\`\`\``, 
+          inline: false 
+        }
       )
-      .setTimestamp();
+      .setTimestamp()
+      .setFooter({ text: 'Urgence Lilloise — Système de Recrutement', iconURL: LOGO_URL });
 
-    await channel.send({ embeds: [embed] });
+    const targetId = discordId ? discordId.replace(/[^0-9]/g, '') : 'unknown';
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId(`accept_${targetId}`).setLabel('Accepter').setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId(`refuse_${targetId}`).setLabel('Refuser').setStyle(ButtonStyle.Danger)
+    );
+
+    const staffPing = `<@&1530783982197805117> <@&1530783982210519236>`;
+    
+    await channel.send({ content: `🔔 **Nouvelle candidature reçue !** ${staffPing}`, embeds: [embed], components: [row] });
     res.status(200).json({ success: true });
   } catch (err) {
     console.error("Erreur lors de l'envoi de la candidature:", err);
@@ -343,9 +367,95 @@ client.on('interactionCreate', async (interaction) => {
         modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
         return await interaction.showModal(modal);
       }
+
+      // Acceptation ou refus rapide depuis les boutons de candidature si besoin
+      if (interaction.customId.startsWith('accept_') || interaction.customId.startsWith('refuse_')) {
+        const [action, targetUserId] = interaction.customId.split('_');
+
+        if (action === 'accept') {
+          await interaction.deferUpdate();
+          const staffUser = interaction.user;
+          const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+
+          const acceptEmbed = new EmbedBuilder()
+            .setTitle("🪪 Recrutement")
+            .setDescription("Votre candidature a été **acceptée** !")
+            .setColor(0x2ED573)
+            .setThumbnail(LOGO_URL);
+
+          if (targetUserId && targetUserId !== 'unknown') {
+            const targetUser = await client.users.fetch(targetUserId).catch(() => null);
+            if (targetUser) await targetUser.send({ embeds: [acceptEmbed] }).catch(() => {});
+          }
+
+          const fields = originalEmbed.data.fields || [];
+          const updatedFields = fields.map(f => {
+            if (f.name === '📌 Statut' || f.name === 'Statut du Dossier') {
+              return { name: '📌 Statut', value: `✅ Accepté par ${staffUser.tag}`, inline: false };
+            }
+            return f;
+          });
+
+          if (!fields.some(f => f.name === '📌 Statut')) {
+            updatedFields.push({ name: '📌 Statut', value: `✅ Accepté par ${staffUser.tag}`, inline: false });
+          }
+
+          originalEmbed.setColor(0x2ED573).setFields(updatedFields);
+          await interaction.editReply({ embeds: [originalEmbed], components: [] });
+
+        } else if (action === 'refuse') {
+          const modal = new ModalBuilder()
+            .setCustomId(`modal_refuse_${targetUserId}`)
+            .setTitle('Motif du refus');
+
+          const reasonInput = new TextInputBuilder()
+            .setCustomId('refuse_reason')
+            .setLabel('Raison du refus :')
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(true);
+
+          modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+          await interaction.showModal(modal);
+        }
+      }
     }
 
     if (interaction.isModalSubmit()) {
+      if (interaction.customId.startsWith('modal_refuse_')) {
+        const targetUserId = interaction.customId.replace('modal_refuse_', '');
+        const reason = interaction.fields.getTextInputValue('refuse_reason');
+        await interaction.deferUpdate();
+
+        const staffUser = interaction.user;
+        const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+
+        const refuseEmbed = new EmbedBuilder()
+          .setTitle("🪪 Recrutement")
+          .setDescription(`Votre candidature n'a malheureusement **pas été retenue**.\n\n**Raison :** ${reason}`)
+          .setColor(0xE52D48)
+          .setThumbnail(LOGO_URL);
+
+        if (targetUserId && targetUserId !== 'unknown') {
+          const targetUser = await client.users.fetch(targetUserId).catch(() => null);
+          if (targetUser) await targetUser.send({ embeds: [refuseEmbed] }).catch(() => {});
+        }
+
+        const fields = originalEmbed.data.fields || [];
+        const updatedFields = fields.map(f => {
+          if (f.name === '📌 Statut' || f.name === 'Statut du Dossier') {
+            return { name: '📌 Statut', value: `❌ Refusé par ${staffUser.tag}\n**Raison :** ${reason}`, inline: false };
+          }
+          return f;
+        });
+
+        if (!fields.some(f => f.name === '📌 Statut')) {
+          updatedFields.push({ name: '📌 Statut', value: `❌ Refusé par ${staffUser.tag}\n**Raison :** ${reason}`, inline: false });
+        }
+
+        originalEmbed.setColor(0xE52D48).setFields(updatedFields);
+        await interaction.editReply({ embeds: [originalEmbed], components: [] });
+      }
+
       if (interaction.customId === 'modal_close_ticket') {
         const closeReason = interaction.fields.getTextInputValue('close_reason');
         await interaction.reply({ content: '🔒 Fermeture du ticket et génération du transcript en cours...', ephemeral: true });
