@@ -39,6 +39,7 @@ const TICKET_CATEGORIES = {
   'ticket_legal': { name: 'legal', categoryId: '1531718799542452484', title: 'Légal' },
   'ticket_illegal': { name: 'illegal', categoryId: '1531718799542452484', title: 'Illégal' },
   'ticket_unban': { name: 'unban', categoryId: '1531717701125410906', title: 'Unban' },
+  'ticket_plainte_joueur': { name: 'plainte-joueur', categoryId: '1531717859309260800', title: 'Plainte Joueur' },
   'ticket_plainte': { name: 'plainte-staff', categoryId: '1531724039729713223', title: 'Plainte Staff' }
 };
 
@@ -165,6 +166,7 @@ client.on('messageCreate', async (message) => {
         "💵 **Légal** — Reprise d'entreprise légale\n" +
         "💼 **Illégal** — Reprise de groupe illégal\n" +
         "🍓 **Unban** — Demande de débannissement\n" +
+        "⚖️ **Plainte Joueur** — Signaler un joueur\n" +
         "🚨 **Plainte Staff** — Signaler un membre du staff\n\n" +
         "⚠️ **Avant d'ouvrir un ticket**\n" +
         "Assurez-vous de ne pas avoir de ticket déjà ouvert.\n" +
@@ -184,6 +186,7 @@ client.on('messageCreate', async (message) => {
         new StringSelectMenuOptionBuilder().setLabel('Légal').setDescription('Reprise d\'entreprise légale').setValue('ticket_legal').setEmoji('💵'),
         new StringSelectMenuOptionBuilder().setLabel('Illégal').setDescription('Reprise de groupe illégal').setValue('ticket_illegal').setEmoji('💼'),
         new StringSelectMenuOptionBuilder().setLabel('Unban').setDescription('Demande de débannissement').setValue('ticket_unban').setEmoji('🍓'),
+        new StringSelectMenuOptionBuilder().setLabel('Plainte Joueur').setDescription('Signaler un joueur').setValue('ticket_plainte_joueur').setEmoji('⚖️'),
         new StringSelectMenuOptionBuilder().setLabel('Plainte Staff').setDescription('Signaler un membre du staff').setValue('ticket_plainte').setEmoji('🚨'),
       ]);
 
