@@ -115,7 +115,6 @@ client.once('ready', () => {
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
-  // Commandes textuelles dans les tickets actifs (.rename, .add, .del)
   if (activeTickets.has(message.channel.id)) {
     const args = message.content.trim().split(/ +/);
     const command = args.shift().toLowerCase();
@@ -162,7 +161,6 @@ client.on('messageCreate', async (message) => {
     }
   }
 
-  // Commande !panel pour le recrutement
   if (message.content === '!panel') {
     const embed = new EmbedBuilder()
       .setColor('#e52d48')
@@ -190,7 +188,6 @@ client.on('messageCreate', async (message) => {
     }
   }
 
-  // Commande !ticket pour le support
   if (message.content === '!ticket') {
     const ticketEmbed = new EmbedBuilder()
       .setColor('#e52d48')
@@ -239,15 +236,15 @@ const applyLimiter = rateLimit({
   message: { error: "Trop de tentatives. Réessayez plus tard." }
 });
 
-// Routes du site web
 app.get('/', (req, res) => res.render('index'));
 app.get('/recrutement', (req, res) => res.render('recrutement'));
 app.get('/boutique', (req, res) => res.render('boutique'));
 app.get('/reglement', (req, res) => res.render('reglement'));
 
-// Traitement du formulaire de recrutement (Site -> Discord avec les questions exactes)
+// Traitement du formulaire de recrutement (Site -> Discord)
 app.post('/recrutement', applyLimiter, async (req, res) => {
   try {
+    // Récupération stricte de toutes les données envoyées par le site web
     const { poste, discordTag, discordId, prenom, age, ambition, pourquoiVous, experiences, roleModerateur } = req.body;
 
     const channel = await client.channels.fetch(CANDIDATURE_DEST_CHANNEL_ID).catch(() => null);
@@ -295,10 +292,9 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
   }
 });
 
-// ================= GESTION DES INTERACTIONS (BOUTONS, TICKETS, MODALS) =================
+// ================= GESTION DES INTERACTIONS =================
 client.on('interactionCreate', async (interaction) => {
   try {
-    // 1. Menu déroulant des tickets
     if (interaction.isStringSelectMenu()) {
       if (interaction.customId === 'ticket_select_menu') {
         const selectedValue = interaction.values[0];
@@ -384,7 +380,6 @@ client.on('interactionCreate', async (interaction) => {
       }
     }
 
-    // 2. Boutons (Recrutement [Accepter/Refuser] & Fermeture de ticket)
     if (interaction.isButton()) {
       if (interaction.customId.startsWith('accept_') || interaction.customId.startsWith('refuse_')) {
         const [action, targetUserId] = interaction.customId.split('_');
@@ -453,7 +448,6 @@ client.on('interactionCreate', async (interaction) => {
       }
     }
 
-    // 3. Soumissions de Modals
     if (interaction.isModalSubmit()) {
       if (interaction.customId.startsWith('modal_refuse_')) {
         const targetUserId = interaction.customId.replace('modal_refuse_', '');
@@ -605,7 +599,6 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-// Lancement du serveur Web
 app.listen(PORT, () => {
   console.log(`Serveur Web démarré sur le port ${PORT}`);
 });
