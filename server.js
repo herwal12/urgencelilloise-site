@@ -187,13 +187,14 @@ client.on('messageCreate', async (message) => {
   }
 });
 
+// Configuration Express & Web
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// AJOUT DE LA ROUTE D'ACCUEIL POUR ÉVITER LE "Cannot GET /"
+// Route d'accueil pour afficher ta page HTML (views/index.ejs)
 app.get('/', (req, res) => {
   res.render('index');
 });
@@ -258,7 +259,6 @@ client.on('interactionCreate', async (interaction) => {
           return interaction.editReply({ content: '❌ Impossible de créer le salon du ticket.' });
         }
 
-        // Sauvegarde de l'ID utilisateur et de l'heure exacte de création
         activeTickets.set(ticketChannel.id, {
           userId: user.id,
           createdAt: Date.now()
@@ -319,7 +319,6 @@ client.on('interactionCreate', async (interaction) => {
           targetUser = await guild.members.fetch(ticketData.userId).catch(() => null);
         }
 
-        // Récupération des messages du salon pour le transcript HTML
         let messagesCollection;
         try {
           messagesCollection = await channel.messages.fetch({ limit: 100 });
@@ -367,7 +366,6 @@ client.on('interactionCreate', async (interaction) => {
         const transcriptBuffer = Buffer.from(htmlContent, 'utf-8');
         const transcriptAttachment = new AttachmentBuilder(transcriptBuffer, { name: `transcript-${channel.name}.html` });
 
-        // Calcul de la durée du ticket
         let durationText = "Inconnue";
         if (ticketData) {
           const diffMs = Date.now() - ticketData.createdAt;
@@ -379,7 +377,6 @@ client.on('interactionCreate', async (interaction) => {
 
         const currentDateStr = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
 
-        // Embed mis aux couleurs et au nom d'Urgence Lilloise
         const embedDetails = new EmbedBuilder()
           .setColor('#e52d48')
           .setTitle('🔒 Ticket Fermé')
@@ -397,14 +394,12 @@ client.on('interactionCreate', async (interaction) => {
           .setFooter({ text: 'Support — Urgence Lilloise' })
           .setTimestamp();
 
-        // 1. Envoi au créateur en message privé (MP)
         if (targetUser) {
           await targetUser.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(() => {
             console.log("Impossible d'envoyer le MP au joueur (privés fermés).");
           });
         }
 
-        // 2. Envoi dans le salon de transcript / logs
         const logsChannel = guild.channels.cache.get(TICKET_LOGS_CHANNEL_ID);
         if (logsChannel) {
           await logsChannel.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(err => {
@@ -414,7 +409,6 @@ client.on('interactionCreate', async (interaction) => {
 
         activeTickets.delete(channel.id);
 
-        // Suppression automatique du salon du ticket après 3 secondes
         setTimeout(async () => {
           await channel.delete().catch(() => {});
         }, 3000);
