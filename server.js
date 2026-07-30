@@ -12,7 +12,9 @@ const {
   TextInputBuilder,
   TextInputStyle,
   StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder
+  StringSelectMenuOptionBuilder,
+  ChannelType,
+  PermissionsBitField
 } = require('discord.js');
 
 const app = express();
@@ -25,6 +27,17 @@ const CANDIDATURE_DEST_CHANNEL_ID = '1530783985045606508'; // Salon où arrivent
 const TICKET_CHANNEL_ID = '1530783984143962204'; // Salon pour envoyer le panel de tickets !ticket
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
 const TICKET_BANNER_URL = 'https://media.discordapp.net/attachments/1530783984143962204/1532199713468841994/image.png?ex=6a6bfbae&is=6a6aaa2e&hm=f647b951b1389272d866ec5381b8fb42be9c70468ad5b1dc1e20f9eac077a586&=&format=webp&quality=lossless';
+
+// Correspondance des catégories de tickets avec leurs IDs de catégorie Discord
+const TICKET_CATEGORIES = {
+  'ticket_question': { name: 'question', categoryId: '1530783985221898419', title: 'Question' },
+  'ticket_boutique': { name: 'boutique', categoryId: '1531718799542452484', title: 'Boutique' },
+  'ticket_bug': { name: 'bug-ig', categoryId: '1531719099829325925', title: 'Bug IG' },
+  'ticket_legal': { name: 'legal', categoryId: '1531718799542452484', title: 'Légal' },
+  'ticket_illegal': { name: 'illegal', categoryId: '1531718799542452484', title: 'Illégal' },
+  'ticket_unban': { name: 'unban', categoryId: '1531717701125410906', title: 'Unban' },
+  'ticket_plainte': { name: 'plainte-staff', categoryId: '1531724039729713223', title: 'Plainte Staff' }
+};
 
 // Initialisation du Bot Discord
 const client = new Client({
@@ -45,7 +58,7 @@ client.once('ready', () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
 });
 
-// Commande !panel : Recrutement
+// Commandes textuelles (!panel et !ticket)
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
@@ -76,7 +89,6 @@ client.on('messageCreate', async (message) => {
     }
   }
 
-  // Commande !ticket : Panel de Support
   if (message.content === '!ticket') {
     const ticketEmbed = new EmbedBuilder()
       .setColor('#e52d48')
@@ -201,17 +213,79 @@ app.post('/recrutement', applyLimiter, async (req, res) => {
 // Gestion des Interactions (Boutons, Menus Déroulants et Modals)
 client.on('interactionCreate', async (interaction) => {
   try {
-    // Gestion du menu déroulant des tickets
+    // Gestion du menu déroulant des tickets (Création automatique du salon)
     if (interaction.isStringSelectMenu()) {
       if (interaction.customId === 'ticket_select_menu') {
-        await interaction.reply({ 
-          content: `✅ Votre sélection a été prise en compte. (La création automatique de salon de ticket peut être configurée ici si besoin).`, 
-          ephemeral: true 
+        const selectedValue = interaction.values[0];
+        const ticketInfo = TICKET_CATEGORIES[selectedValue];
+
+        if (!ticketInfo) {
+          return interaction.reply({ content: '❌ Erreur : Catégorie de ticket invalide.', ephemeral: true });
+        }
+
+        await interaction.deferReply({ ephemeral: true });
+
+        const guild = interaction.guild;
+        const user = interaction.user;
+
+        // Création du salon privé dans la bonne catégorie
+        const channelName = `${ticketInfo.name}-${user.username}`.toLowerCase().replace(/[^a-z0-9-_]/g, '');
+        
+        const ticketChannel = await guild.channels.create({
+          name: channelName,
+          type: ChannelType.GuildText,
+          parent: ticketInfo.categoryId,
+          permissionOverwrites: [
+            {
+              id: guild.roles.everyone.id,
+              deny: [PermissionsBitField.Flags.ViewChannel],
+            },
+            {
+              id: user.id,
+              allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
+            },
+          ],
+        }).catch(err => {
+          console.error("Erreur lors de la création du salon de ticket :", err);
+          return null;
         });
+
+        if (!ticketChannel) {
+          return interaction.editReply({ content: '❌ Impossible de créer le salon du ticket. Vérifiez les IDs de catégorie.' });
+        }
+
+        // Message de bienvenue à l'intérieur du salon créé
+        const welcomeEmbed = new EmbedBuilder()
+          .setColor('#e52d48')
+          .setTitle(`Ticket : ${ticketInfo.title}`)
+          .setDescription(`Bonjour ${user}, bienvenue dans votre ticket.\nUn membre de l'équipe va s'occuper de vous très rapidement.\n\nVeuillez exposer votre problème en détail avec un maximum de preuves/captures d'écran si nécessaire.`)
+          .setThumbnail(LOGO_URL)
+          .setTimestamp();
+
+        const closeRow = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId('close_ticket')
+            .setLabel('Fermer le ticket')
+            .setStyle(ButtonStyle.Danger)
+            .setEmoji('🔒')
+        );
+
+        await ticketChannel.send({ content: `${user}`, embeds: [welcomeEmbed], components: [closeRow] });
+
+        await interaction.editReply({ content: `✅ Votre ticket a été créé avec succès : ${ticketChannel}` });
       }
     }
 
     if (interaction.isButton()) {
+      // Fermeture du ticket
+      if (interaction.customId === 'close_ticket') {
+        await interaction.reply({ content: '🔒 Fermeture du ticket en cours...', ephemeral: true });
+        setTimeout(async () => {
+          await interaction.channel.delete().catch(() => {});
+        }, 3000);
+        return;
+      }
+
       const [action, targetUserId] = interaction.customId.split('_');
       
       if (action === 'accept') {
