@@ -1,425 +1,528 @@
-const express = require('express');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-const { 
-  Client, 
-  GatewayIntentBits, 
-  EmbedBuilder, 
-  ActionRowBuilder, 
-  ButtonBuilder, 
-  ButtonStyle,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
-  ChannelType,
-  PermissionsBitField,
-  AttachmentBuilder
-} = require('discord.js');
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urgence Lilloise Semi FivePD</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    }
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+    body {
+      background-color: #0a0a0c;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
 
-// Variables d'environnement & IDs
-const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-const RECRUTEMENT_CHANNEL_ID = '1530783982877278213';
-const CANDIDATURE_DEST_CHANNEL_ID = '1530783985045606508';
-const TICKET_CHANNEL_ID = '1530783984143962204';
-const TICKET_LOGS_CHANNEL_ID = '1531727851680698379'; // Salon de transcript
-const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
-const TICKET_BANNER_URL = 'https://media.discordapp.net/attachments/1530783984143962204/1532199713468841994/image.png?ex=6a6bfbae&is=6a6aaa2e&hm=f647b951b1389272d866ec5381b8fb42be9c70468ad5b1dc1e20f9eac077a586&=&format=webp&quality=lossless';
-const SERVER_ICON_URL = 'https://images-ext-1.discordapp.net/external/13dVJvwLxmIyN952nvst_nHPVhRaOG98o5eg0L09rUw/%3Fsize%3D256/https/cdn.discordapp.com/icons/1530783981988085853/01bad94e7ccac907a3d138d7575b101a.png?format=webp&quality=lossless';
+      /* BANNIÈRE */
+      background-image: linear-gradient(rgba(10, 10, 12, 0.7), rgba(10, 10, 12, 0.8)),
+                        url('https://media.discordapp.net/attachments/1525200263173112018/1529295831117861006/wiwi.png?ex=6a655fbb&is=6a640e3b&hm=cf135396d2c321431e2cbf11e4793469e448ca210a13a972067362bd4e409c8e&=&format=webp&quality=lossless');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
 
-// Correspondance exacte des catégories avec leurs rôles spécifiques
-const TICKET_CATEGORIES = {
-  'ticket_question': { 
-    name: 'question', 
-    categoryId: '1532213199863283712', 
-    title: 'Question',
-    allowedRoles: ['1530783982197805117'] 
-  },
-  'ticket_boutique': { 
-    name: 'boutique', 
-    categoryId: '1532213765431627816', 
-    title: 'Boutique',
-    allowedRoles: ['1530783982210519235'] 
-  },
-  'ticket_bug': { 
-    name: 'bug-ig', 
-    categoryId: '1532213885971599442', 
-    title: 'Bug IG',
-    allowedRoles: ['1530783982122303541'] 
-  },
-  'ticket_legal': { 
-    name: 'legal', 
-    categoryId: '1532214069556281434', 
-    title: 'Légal',
-    allowedRoles: ['1531701094709854339'] 
-  },
-  'ticket_illegal': { 
-    name: 'illegal', 
-    categoryId: '1532214202343751780', 
-    title: 'Illégal',
-    allowedRoles: ['1531701011029164252'] 
-  },
-  'ticket_unban': { 
-    name: 'unban', 
-    categoryId: '1532214399945936896', 
-    title: 'Unban',
-    allowedRoles: ['1530783982180896887', '1530783982180896886', '1530783982151794743'] 
-  },
-  'ticket_plainte_joueur': { 
-    name: 'plainte-joueur', 
-    categoryId: '1532214555990818999', 
-    title: 'Plainte Joueur',
-    allowedRoles: ['1530783982197805117'] 
-  },
-  'ticket_plainte': { 
-    name: 'plainte-staff', 
-    categoryId: '1532214697485537381', 
-    title: 'Plainte Staff',
-    allowedRoles: ['1530783982210519236'] 
-  }
-};
+    /* HEADER */
+    header {
+      padding: 25px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      background: rgba(10, 10, 12, 0.5);
+      backdrop-filter: blur(8px);
+    }
 
-// Stockage pour le suivi des tickets actifs (ID du salon -> infos)
-const activeTickets = new Map();
+    /* LISERÉ DRAPEAU FRANÇAIS */
+    .french-flag-bar {
+      height: 4px;
+      width: 100%;
+      background: linear-gradient(90deg, #0055A5 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #EF4135 66.66%);
+      box-shadow: 0 0 10px rgba(229, 45, 72, 0.3);
+      z-index: 10;
+    }
 
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
-});
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #ffffff;
+      text-decoration: none;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-client.login(DISCORD_BOT_TOKEN).catch(err => {
-  console.error("❌ Erreur de connexion au Bot Discord:", err);
-});
+    .logo img {
+      height: 45px;
+      width: auto;
+    }
 
-client.once('ready', () => {
-  console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
-});
+    .logo span {
+      color: #e52d48;
+    }
 
-client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
+    nav {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
 
-  if (activeTickets.has(message.channel.id)) {
-    const args = message.content.trim().split(/ +/);
-    const command = args.shift().toLowerCase();
+    nav a {
+      color: #a0a0a0;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: color 0.3s;
+    }
 
-    if (command === '.rename') {
-      const newName = args.join('-');
-      if (!newName) return message.reply({ content: '❌ Utilisation : `.rename <nouveau-nom>`' });
-      try {
-        await message.channel.setName(newName);
-        return message.reply({ content: `✅ Salon renommé en **${newName}** avec succès.` });
-      } catch (err) {
-        return message.reply({ content: '❌ Erreur lors du renommage du salon.' });
+    nav a:hover, nav a.active {
+      color: #ffffff;
+    }
+
+    .btn-discord {
+      background-color: #5865F2;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .btn-discord:hover {
+      background-color: #4752C4;
+      transform: translateY(-2px);
+    }
+
+    /* HERO SECTION */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 10%;
+      z-index: 2;
+    }
+
+    .sub-title {
+      color: #e52d48;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .sub-title::before {
+      content: '— ';
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    p.description {
+      color: #a0a0a0;
+      font-size: 1.1rem;
+      max-width: 600px;
+      line-height: 1.6;
+      margin-bottom: 35px;
+    }
+
+    .cta-container {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .btn-primary {
+      background-color: #e52d48;
+      color: #ffffff;
+      padding: 14px 28px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .btn-primary:hover {
+      background-color: #c02138;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      padding: 14px 28px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* SECTION CARROUSEL DES MÉTIERS */
+    .jobs-section {
+      padding: 40px 0 60px 0;
+      overflow: hidden;
+      position: relative;
+      background: rgba(10, 10, 12, 0.6);
+      backdrop-filter: blur(5px);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .jobs-header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-left: 10%;
+      padding-right: 10%;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .jobs-section h2 {
+      font-size: 1.6rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #ffffff;
+      letter-spacing: 1px;
+    }
+
+    .jobs-notice {
+      color: #e52d48;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(229, 45, 72, 0.1);
+      border: 1px solid rgba(229, 45, 72, 0.3);
+      padding: 5px 12px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .carousel-track {
+      display: flex;
+      gap: 20px;
+      width: max-content;
+      animation: scrollJobs 30s linear infinite;
+    }
+
+    .carousel-track:hover {
+      animation-play-state: paused;
+    }
+
+    @keyframes scrollJobs {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(calc(-50% - 10px));
       }
     }
 
-    if (command === '.add') {
-      const targetMember = message.mentions.members.first();
-      if (!targetMember) return message.reply({ content: '❌ Utilisation : `.add @membre`' });
-      try {
-        await message.channel.permissionOverwrites.edit(targetMember.id, {
-          ViewChannel: true,
-          SendMessages: true,
-          ReadMessageHistory: true
-        });
-        return message.reply({ content: `✅ ${targetMember} a été ajouté au ticket.` });
-      } catch (err) {
-        return message.reply({ content: '❌ Erreur lors de l\'ajout du membre.' });
-      }
+    .job-card {
+      width: 260px;
+      height: 360px;
+      border-radius: 12px;
+      background-color: #0a0a0c;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s ease, border-color 0.3s ease;
     }
 
-    if (command === '.del') {
-      const targetMember = message.mentions.members.first();
-      if (!targetMember) return message.reply({ content: '❌ Utilisation : `.del @membre`' });
-      try {
-        await message.channel.permissionOverwrites.edit(targetMember.id, {
-          ViewChannel: false,
-          SendMessages: false,
-          ReadMessageHistory: false
-        });
-        return message.reply({ content: `✅ L'accès au ticket a été retiré à ${targetMember}.` });
-      } catch (err) {
-        return message.reply({ content: '❌ Erreur lors du retrait du membre.' });
-      }
-    }
-  }
-
-  if (message.content === '!ticket') {
-    const ticketEmbed = new EmbedBuilder()
-      .setColor('#e52d48')
-      .setTitle('Urgence Lilloise — Support')
-      .setDescription(
-        "Vous avez besoin d'aide ?\n" +
-        "Notre équipe de staff est disponible pour vous accompagner.\n\n" +
-        "**Sélectionnez une catégorie** dans le menu ci-dessous pour ouvrir votre ticket."
-      )
-      .setImage(TICKET_BANNER_URL)
-      .setFooter({ text: 'Support — Urgence Lilloise' });
-
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('ticket_select_menu')
-      .setPlaceholder('Sélectionne ce que tu as besoin.')
-      .addOptions([
-        new StringSelectMenuOptionBuilder().setLabel('Question').setDescription('Une question générale sur le serveur').setValue('ticket_question').setEmoji('💬'),
-        new StringSelectMenuOptionBuilder().setLabel('Boutique').setDescription('Achat, paiement, commande boutique').setValue('ticket_boutique').setEmoji('🛒'),
-        new StringSelectMenuOptionBuilder().setLabel('Bug IG').setDescription('Signaler un bug en jeu').setValue('ticket_bug').setEmoji('💢'),
-        new StringSelectMenuOptionBuilder().setLabel('Légal').setDescription('Reprise d\'entreprise légale').setValue('ticket_legal').setEmoji('💵'),
-        new StringSelectMenuOptionBuilder().setLabel('Illégal').setDescription('Reprise de groupe illégal').setValue('ticket_illegal').setEmoji('💼'),
-        new StringSelectMenuOptionBuilder().setLabel('Unban').setDescription('Demande de débannissement').setValue('ticket_unban').setEmoji('🍓'),
-        new StringSelectMenuOptionBuilder().setLabel('Plainte Joueur').setDescription('Signaler un joueur').setValue('ticket_plainte_joueur').setEmoji('⚖️'),
-        new StringSelectMenuOptionBuilder().setLabel('Plainte Staff').setDescription('Signaler un membre du staff').setValue('ticket_plainte').setEmoji('🚨'),
-      ]);
-
-    const row = new ActionRowBuilder().addComponents(selectMenu);
-    const ticketChannel = client.channels.cache.get(TICKET_CHANNEL_ID);
-    if (ticketChannel) {
-      await ticketChannel.send({ embeds: [ticketEmbed], components: [row] });
-      message.reply('✅ Panel de tickets envoyé avec succès !');
-    }
-  }
-});
-
-// Configuration Express & Web
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Route d'accueil pour afficher ta page HTML (views/index.ejs)
-app.get('/', (req, res) => {
-  res.render('index');
-});
-
-client.on('interactionCreate', async (interaction) => {
-  try {
-    if (interaction.isStringSelectMenu()) {
-      if (interaction.customId === 'ticket_select_menu') {
-        const selectedValue = interaction.values[0];
-        const ticketInfo = TICKET_CATEGORIES[selectedValue];
-
-        if (!ticketInfo) {
-          return interaction.reply({ content: '❌ Erreur : Catégorie invalide.', ephemeral: true });
-        }
-
-        await interaction.deferReply({ ephemeral: true });
-
-        const guild = interaction.guild;
-        const user = interaction.user;
-        const channelName = `${ticketInfo.name}-${user.username}`.toLowerCase().replace(/[^a-z0-9-_]/g, '');
-        
-        const permissionOverwrites = [
-          {
-            id: guild.roles.everyone.id,
-            deny: [PermissionsBitField.Flags.ViewChannel],
-          },
-          {
-            id: user.id,
-            allow: [
-              PermissionsBitField.Flags.ViewChannel, 
-              PermissionsBitField.Flags.SendMessages, 
-              PermissionsBitField.Flags.ReadMessageHistory
-            ],
-          }
-        ];
-
-        if (ticketInfo.allowedRoles) {
-          for (const roleId of ticketInfo.allowedRoles) {
-            permissionOverwrites.push({
-              id: roleId,
-              allow: [
-                PermissionsBitField.Flags.ViewChannel, 
-                PermissionsBitField.Flags.SendMessages, 
-                PermissionsBitField.Flags.ReadMessageHistory
-              ],
-            });
-          }
-        }
-
-        const ticketChannel = await guild.channels.create({
-          name: channelName,
-          type: ChannelType.GuildText,
-          parent: ticketInfo.categoryId,
-          permissionOverwrites: permissionOverwrites,
-          lockPermissions: false 
-        }).catch(err => {
-          console.error("Erreur création salon:", err);
-          return null;
-        });
-
-        if (!ticketChannel) {
-          return interaction.editReply({ content: '❌ Impossible de créer le salon du ticket.' });
-        }
-
-        activeTickets.set(ticketChannel.id, {
-          userId: user.id,
-          createdAt: Date.now()
-        });
-
-        const welcomeEmbed = new EmbedBuilder()
-          .setColor('#e52d48')
-          .setTitle(`Ticket : ${ticketInfo.title}`)
-          .setDescription(`Bonjour ${user}, bienvenue dans votre ticket.\nUn membre de l'équipe va s'occuper de vous très rapidement.`)
-          .setThumbnail(LOGO_URL)
-          .setTimestamp();
-
-        const closeRow = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId('close_ticket')
-            .setLabel('Fermer le ticket')
-            .setStyle(ButtonStyle.Danger)
-            .setEmoji('🔒')
-        );
-
-        const pings = ticketInfo.allowedRoles.map(rId => `<@&${rId}>`).join(' ');
-        await ticketChannel.send({ content: `${user} ${pings}`, embeds: [welcomeEmbed], components: [closeRow] });
-
-        await interaction.editReply({ content: `✅ Votre ticket a été créé avec succès : ${ticketChannel}` });
-      }
+    .job-card:hover {
+      transform: translateY(-8px);
+      border-color: #e52d48;
     }
 
-    if (interaction.isButton()) {
-      if (interaction.customId === 'close_ticket') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_close_ticket')
-          .setTitle('Fermeture du ticket');
-
-        const reasonInput = new TextInputBuilder()
-          .setCustomId('close_reason')
-          .setLabel('Raison de la fermeture :')
-          .setStyle(TextInputStyle.Paragraph)
-          .setPlaceholder('Ex: Problème résolu')
-          .setRequired(true);
-
-        modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
-        return await interaction.showModal(modal);
-      }
+    /* Style pour les images de fond des cartes */
+    .job-card.has-bg {
+      background-size: cover;
+      background-position: center;
     }
 
-    if (interaction.isModalSubmit()) {
-      if (interaction.customId === 'modal_close_ticket') {
-        const closeReason = interaction.fields.getTextInputValue('close_reason');
-        await interaction.reply({ content: '🔒 Fermeture du ticket et génération du transcript en cours...', ephemeral: true });
-
-        const channel = interaction.channel;
-        const guild = interaction.guild;
-        const staffMember = interaction.user;
-        const ticketData = activeTickets.get(channel.id);
-
-        let targetUser = null;
-        if (ticketData) {
-          targetUser = await guild.members.fetch(ticketData.userId).catch(() => null);
-        }
-
-        let messagesCollection;
-        try {
-          messagesCollection = await channel.messages.fetch({ limit: 100 });
-        } catch {
-          messagesCollection = [];
-        }
-
-        const messages = Array.from(messagesCollection.values()).reverse();
-        const messageCount = messages.length;
-
-        let htmlContent = `
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Transcript - ${channel.name}</title>
-          <style>
-            body { background-color: #313338; color: #dbdee1; font-family: Arial, sans-serif; padding: 20px; }
-            .reason-box { background-color: #2b2d31; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #e52d48; }
-            .msg { margin-bottom: 15px; }
-            .author { font-weight: bold; color: #ffffff; }
-            .time { font-size: 11px; color: #949ba4; margin-left: 5px; }
-            .content { margin-top: 5px; white-space: pre-wrap; }
-          </style>
-        </head>
-        <body>
-          <h2>Transcript du salon : #${channel.name}</h2>
-          <div class="reason-box">
-            <strong>Raison de fermeture :</strong> ${closeReason}
-          </div>
-          <hr style="border: 0; border-top: 1px solid #4e5058;"><br>
-        `;
-
-        messages.forEach(m => {
-          const timeStr = new Date(m.createdTimestamp).toLocaleString();
-          htmlContent += `
-            <div class="msg">
-              <span class="author">${m.author.tag}</span><span class="time">${timeStr}</span>
-              <div class="content">${m.content || '[Contenu multimédia / Embed]'}</div>
-            </div>
-          `;
-        });
-
-        htmlContent += `</body></html>`;
-
-        const transcriptBuffer = Buffer.from(htmlContent, 'utf-8');
-        const transcriptAttachment = new AttachmentBuilder(transcriptBuffer, { name: `transcript-${channel.name}.html` });
-
-        let durationText = "Inconnue";
-        if (ticketData) {
-          const diffMs = Date.now() - ticketData.createdAt;
-          const diffMins = Math.floor(diffMs / 60000);
-          if (diffMins < 1) durationText = "Moins d'une minute";
-          else if (diffMins === 1) durationText = "1 minute";
-          else durationText = `${diffMins} minutes`;
-        }
-
-        const currentDateStr = new Date().toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
-
-        const embedDetails = new EmbedBuilder()
-          .setColor('#e52d48')
-          .setTitle('🔒 Ticket Fermé')
-          .setDescription(`Ticket fermé sur **Urgence Lilloise**.`)
-          .setThumbnail(SERVER_ICON_URL)
-          .addFields(
-            { name: '📋 Type de ticket', value: `\`${channel.name}\``, inline: true },
-            { name: '👤 Fermé par', value: `\`${staffMember.tag}\``, inline: true },
-            { name: '📌 Raison', value: `\`\`\`\n${closeReason}\n\`\`\``, inline: false },
-            { name: '📅 Date de fermeture', value: `\`${currentDateStr}\``, inline: true },
-            { name: '⏱️ Durée du ticket', value: `\`${durationText}\``, inline: true },
-            { name: '📊 Nombre de messages', value: `${messageCount}`, inline: true },
-            { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint.', inline: false }
-          )
-          .setFooter({ text: 'Support — Urgence Lilloise' })
-          .setTimestamp();
-
-        if (targetUser) {
-          await targetUser.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(() => {
-            console.log("Impossible d'envoyer le MP au joueur (privés fermés).");
-          });
-        }
-
-        const logsChannel = guild.channels.cache.get(TICKET_LOGS_CHANNEL_ID);
-        if (logsChannel) {
-          await logsChannel.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(err => {
-            console.error("Erreur lors de l'envoi dans le salon de transcript :", err);
-          });
-        }
-
-        activeTickets.delete(channel.id);
-
-        setTimeout(async () => {
-          await channel.delete().catch(() => {});
-        }, 3000);
-      }
+    .job-overlay {
+      position: absolute;
+      inset: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background: linear-gradient(to top, rgba(10, 10, 12, 0.95) 20%, rgba(10, 10, 12, 0.4) 70%, transparent 100%);
     }
 
-  } catch (error) {
-    console.error("Erreur interaction:", error);
-  }
-});
+    .job-badge {
+      align-self: flex-start;
+      background: rgba(229, 45, 72, 0.2);
+      color: #ff4d6d;
+      border: 1px solid rgba(229, 45, 72, 0.4);
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
 
-app.listen(PORT, () => {
-  console.log(`Serveur Web démarré sur le port ${PORT}`);
-});
+    .job-badge.police {
+      background: rgba(45, 125, 229, 0.2);
+      color: #4da6ff;
+      border-color: rgba(45, 125, 229, 0.4);
+    }
+
+    .job-badge.samu {
+      background: rgba(229, 219, 45, 0.2);
+      color: #ffe64d;
+      border-color: rgba(229, 219, 45, 0.4);
+    }
+
+    .job-badge.prot {
+      background: rgba(229, 116, 45, 0.2);
+      color: #ff9d4d;
+      border-color: rgba(229, 116, 45, 0.4);
+    }
+
+    .job-card h3 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .job-card h3 a {
+      color: #ffffff;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .job-card h3 a:hover {
+      color: #e52d48;
+    }
+
+    .job-card p {
+      font-size: 0.8rem;
+      color: #a0a0a0;
+      line-height: 1.3;
+    }
+
+    /* FOOTER */
+    footer {
+      background: #070708;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      text-align: center;
+      color: #666666;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    footer span {
+      color: #e52d48;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <a href="/" class="logo">
+      <img src="https://images-ext-1.discordapp.net/external/8aFZTPSGx86d0OrinnNccclsx-HM782VKGeEWOrsJd0/%3Fsize%3D256/https/cdn.discordapp.com/icons/1525134348842696825/2d0ad7849aa0c15ab794b22a214a4154.png?format=webp&quality=lossless" alt="Logo Urgence Lilloise">
+      Urgence Lilloise <span>Semi FivePD</span>
+    </a>
+    <nav>
+      <a href="/" class="active">Accueil</a>
+      <a href="/recrutement">Recrutement</a>
+      <a href="/boutique">Boutique</a>
+      <a href="https://discord.gg/WHR9Nbs29" target="_blank" class="btn-discord">
+        <i class="fa-brands fa-discord"></i> Discord
+      </a>
+    </nav>
+  </header>
+
+  <!-- LISERÉ DRAPEAU FRANÇAIS -->
+  <div class="french-flag-bar"></div>
+
+  <!-- HERO SECTION -->
+  <main class="hero">
+    <div class="sub-title">Serveur Roleplay Français</div>
+    <h1>Urgence Lilloise<br>Semi FivePD</h1>
+    <p class="description">
+      Rejoins une expérience Roleplay unique axée sur les services d'urgence, la gendarmerie et la vie civile dans la métropole lilloise.
+    </p>
+    <div class="cta-container">
+      <a href="fivem://connect/votre-ip" class="btn-primary">
+        <i class="fa-solid fa-play"></i> Rejoindre le serveur
+      </a>
+      <a href="/reglement" class="btn-secondary">
+        <i class="fa-solid fa-book"></i> Lire le règlement
+      </a>
+    </div>
+  </main>
+
+  <!-- SECTION CARROUSEL MÉTIERS -->
+  <section class="jobs-section">
+    <div class="jobs-header-container">
+      <h2>Métiers & Factions</h2>
+      <div class="jobs-notice">
+        <i class="fa-solid fa-triangle-exclamation"></i> Visuels en cours de finalisation
+      </div>
+    </div>
+
+    <div class="carousel-track">
+      <!-- SÉRIE 1 -->
+      <div class="job-card">
+        <div class="job-overlay">
+          <span class="job-badge samu">Urgences Médicales</span>
+          <h3>SAMU</h3>
+          <p>Intervenez sur les urgences vitales et prodiguez les premiers soins sur le terrain.</p>
+        </div>
+      </div>
+
+      <!-- Police Nationale avec image -->
+      <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1490687935509430293/1530424728664408174/image.png?ex=6a662f59&is=6a64ddd9&hm=742189568f00fbba3ae5efedf5bfcc3f6f8a38c97dc91e5d88233efeeb6f7683&=&format=webp&quality=lossless');">
+        <div class="job-overlay">
+          <span class="job-badge police">Forces de l'ordre</span>
+          <h3><a href="https://discord.gg/QFqYSXcAA" target="_blank">Police Nationale</a></h3>
+          <p>Assurez la sécurité en milieu urbain et menez des enquêtes judiciaires.</p>
+        </div>
+      </div>
+
+      <!-- Police Municipale avec image -->
+      <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1525156248444469329/1528442803607044207/Capture_decran_2026-07-19_184349.png?ex=6a6639c9&is=6a64e849&hm=79ed09da875f570a4ec189b0b8a9f665c0ba9dc77b4971dfd942574c6e12d425&=&format=webp&quality=lossless');">
+        <div class="job-overlay">
+          <span class="job-badge police">Proximité</span>
+          <h3><a href="https://discord.gg/2BrKvcMjj" target="_blank">Police Municipale</a></h3>
+          <p>Veillez au respect de l'ordre public et à la tranquillité des Lillois au quotidien.</p>
+        </div>
+      </div>
+
+      <div class="job-card">
+        <div class="job-overlay">
+          <span class="job-badge police">Forces de l'ordre</span>
+          <h3><a href="https://discord.gg/K7T7sCWhv4" target="_blank">Gendarmerie</a></h3>
+          <p>Patrouillez sur les axes routiers et sécurisez l'ensemble du territoire.</p>
+        </div>
+      </div>
+
+      <!-- Illégal avec image -->
+      <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1316456777214332948/1527687288794910881/BH7UwWz52EsA.webp?ex=6a661d28&is=6a64cba8&hm=09cf296b4d5b715f01c8f787f85ed1be35a7778e1e01991d50b14dc261b37f6d&=&format=webp');">
+        <div class="job-overlay">
+          <span class="job-badge">Illégal</span>
+          <h3><a href="https://discord.gg/JThKDtbshr" target="_blank">Illégal</a></h3>
+          <p>Développez vos réseaux clandestins, trafics et affaires hors-la-loi.</p>
+        </div>
+      </div>
+
+      <div class="job-card">
+        <div class="job-overlay">
+          <span class="job-badge prot">Secourisme</span>
+          <h3>Protection Civile</h3>
+          <p>Soutenez les populations, gérez les dispositifs prévisionnels de secours.</p>
+        </div>
+      </div>
+
+      <!-- SÉRIE 2 (Duplication pour boucle infinie du carrousel) -->
+      <div class="job-card">
+        <div class="job-overlay">
+          <span class="job-badge samu">Urgences Médicales</span>
+          <h3>SAMU</h3>
+          <p>Intervenez sur les urgences vitales et prodiguez les premiers soins sur le terrain.</p>
+        </div>
+      </div>
+
+      <!-- Police Nationale avec image (Doublon) -->
+      <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1490687935509430293/1530424728664408174/image.png?ex=6a662f59&is=6a64ddd9&hm=742189568f00fbba3ae5efedf5bfcc3f6f8a38c97dc91e5d88233efeeb6f7683&=&format=webp&quality=lossless');">
+        <div class="job-overlay">
+          <span class="job-badge police">Forces de l'ordre</span>
+          <h3><a href="https://discord.gg/QFqYSXcAA" target="_blank">Police Nationale</a></h3>
+          <p>Assurez la sécurité en milieu urbain et menez des enquêtes judiciaires.</p>
+        </div>
+      </div>
+
+      <!-- Police Municipale avec image (Doublon) -->
+      <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1525156248444469329/1528442803607044207/Capture_decran_2026-07-19_184349.png?ex=6a6639c9&is=6a64e849&hm=79ed09da875f570a4ec189b0b8a9f665c0ba9dc77b4971dfd942574c6e12d425&=&format=webp&quality=lossless');">
+        <div class="job-overlay">
+          <span class="job-badge police">Proximité</span>
+          <h3><a href="https://discord.gg/2BrKvcMjj" target="_blank">Police Municipale</a></h3>
+          <p>Veillez au respect de l'ordre public et à la tranquillité des Lillois au quotidien.</p>
+        </div>
+      </div>
+
+      <div class="job-card">
+        <div class="job-overlay">
+          <span class="job-badge police">Forces de l'ordre</span>
+          <h3><a href="https://discord.gg/K7T7sCWhv4" target="_blank">Gendarmerie</a></h3>
+          <p>Patrouillez sur les axes routiers et sécurisez l'ensemble du territoire.</p>
+        </div>
+      </div>
+
+      <!-- Illégal avec image (Doublon) -->
+      <div class="job-card has-bg" style="background-image: url('https://media.discordapp.net/attachments/1316456777214332948/1527687288794910881/BH7UwWz52EsA.webp?ex=6a661d28&is=6a64cba8&hm=09cf296b4d5b715f01c8f787f85ed1be35a7778e1e01991d50b14dc261b37f6d&=&format=webp');">
+        <div class="job-overlay">
+          <span class="job-badge">Illégal</span>
+          <h3><a href="https://discord.gg/JThKDtbshr" target="_blank">Illégal</a></h3>
+          <p>Développez vos réseaux clandestins, trafics et affaires hors-la-loi.</p>
+        </div>
+      </div>
+
+      <div class="job-card">
+        <div class="job-overlay">
+          <span class="job-badge prot">Secourisme</span>
+          <h3>Protection Civile</h3>
+          <p>Soutenez les populations, gérez les dispositifs prévisionnels de secours.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Urgence Lilloise. Tous droits réservés. — Made by <span>ymn_0ffcl</span></p>
+  </footer>
+
+</body>
+</html>
