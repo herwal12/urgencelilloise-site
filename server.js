@@ -21,17 +21,23 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Variables d'environnement & IDs
+// ================= VARIABLES D'ENVIRONNEMENT & IDS =================
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-const RECRUTEMENT_CHANNEL_ID = '1530783982877278213';
-const CANDIDATURE_DEST_CHANNEL_ID = '1530783985045606508';
+
+// Salons & Liens Recrutement
+const RECRUTEMENT_CHANNEL_ID = '1530783982877278213'; // Salon pour envoyer le !panel
+const CANDIDATURE_DEST_CHANNEL_ID = '1530783985045606508'; // Salon où arrivent les candidatures du site
+
+// Salons & Liens Tickets
 const TICKET_CHANNEL_ID = '1530783984143962204';
 const TICKET_LOGS_CHANNEL_ID = '1531727851680698379'; // Salon de transcript
+
+// Médias
 const LOGO_URL = 'https://media.discordapp.net/attachments/1526171548472446986/1527347546618593441/logo-ul.png?ex=6a68d53f&is=6a6783bf&hm=41577189ad8d5c5fe693891bccd581b7b7623419699f2bfadf1822c1bec7443b&=&format=webp&quality=lossless';
 const TICKET_BANNER_URL = 'https://media.discordapp.net/attachments/1530783984143962204/1532199713468841994/image.png?ex=6a6bfbae&is=6a6aaa2e&hm=f647b951b1389272d866ec5381b8fb42be9c70468ad5b1dc1e20f9eac077a586&=&format=webp&quality=lossless';
 const SERVER_ICON_URL = 'https://images-ext-1.discordapp.net/external/13dVJvwLxmIyN952nvst_nHPVhRaOG98o5eg0L09rUw/%3Fsize%3D256/https/cdn.discordapp.com/icons/1530783981988085853/01bad94e7ccac907a3d138d7575b101a.png?format=webp&quality=lossless';
 
-// Correspondance exacte des catégories avec leurs rôles spécifiques
+// Correspondance exacte des catégories de tickets avec leurs rôles spécifiques
 const TICKET_CATEGORIES = {
   'ticket_question': { 
     name: 'question', 
@@ -86,6 +92,7 @@ const TICKET_CATEGORIES = {
 // Stockage pour le suivi des tickets actifs (ID du salon -> infos)
 const activeTickets = new Map();
 
+// Initialisation du Bot Discord
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -95,6 +102,7 @@ const client = new Client({
   ]
 });
 
+// Connexion du Bot
 client.login(DISCORD_BOT_TOKEN).catch(err => {
   console.error("❌ Erreur de connexion au Bot Discord:", err);
 });
@@ -103,9 +111,11 @@ client.once('ready', () => {
   console.log(`✅ Bot Discord connecté en tant que : ${client.user.tag}`);
 });
 
+// ================= GESTION DES MESSAGES & COMMANDES DISCORD =================
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
+  // Commandes textuelles dans les tickets actifs (.rename, .add, .del)
   if (activeTickets.has(message.channel.id)) {
     const args = message.content.trim().split(/ +/);
     const command = args.shift().toLowerCase();
@@ -152,6 +162,35 @@ client.on('messageCreate', async (message) => {
     }
   }
 
+  // Commande !panel pour le recrutement (fermé avec bouton désactivé)
+  if (message.content === '!panel') {
+    const embed = new EmbedBuilder()
+      .setColor('#e52d48')
+      .setTitle('URGENCE LILLOISE • RECRUTEMENTS')
+      .setDescription("Comme annoncé, les recrutements sont dorénavant **fermés**. Par conséquent, il vous est actuellement **impossible de postuler**.\n\nMerci de votre compréhension et de l'intérêt que vous portez à notre communauté.")
+      .setThumbnail(LOGO_URL)
+      .setFooter({ text: 'Urgence Lilloise • Équipe de recrutement' })
+      .setTimestamp();
+
+    const row = new ActionRowBuilder()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId('recrutement_ferme')
+          .setLabel('Recrutements fermés ❌')
+          .setStyle(ButtonStyle.Danger)
+          .setDisabled(true)
+      );
+
+    const channel = client.channels.cache.get(RECRUTEMENT_CHANNEL_ID);
+    if (channel) {
+      await channel.send({ embeds: [embed], components: [row] });
+      message.reply('✅ Panel de recrutement envoyé avec succès !');
+    } else {
+      message.reply('❌ Erreur : Impossible de trouver le salon de recrutement.');
+    }
+  }
+
+  // Commande !ticket pour le support
   if (message.content === '!ticket') {
     const ticketEmbed = new EmbedBuilder()
       .setColor('#e52d48')
@@ -187,61 +226,83 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-// Configuration Express & Web
+// ================= CONFIGURATION EXPRESS & WEB =================
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ================= Web Routes =================
-app.get('/', (req, res) => {
-  res.render('index');
+const applyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: "Trop de tentatives. Réessayez plus tard." }
 });
 
-app.get('/recrutement', (req, res) => {
-  res.render('recrutement');
-});
+// Routes du site web
+app.get('/', (req, res) => res.render('index'));
+app.get('/recrutement', (req, res) => res.render('recrutement'));
+app.get('/boutique', (req, res) => res.render('boutique'));
+app.get('/reglement', (req, res) => res.render('reglement'));
 
-app.get('/reglement', (req, res) => {
-  res.render('reglement');
-});
-
-// Route pour traiter l'envoi du formulaire de recrutement vers Discord
-app.post('/recrutement', async (req, res) => {
+// Traitement du formulaire de recrutement (Site -> Discord)
+app.post('/recrutement', applyLimiter, async (req, res) => {
   try {
-    const { service, discordTag, discordId, prenom, age, ambition, motivation, experience, roleModerateur } = req.body;
-    
-    const channel = client.channels.cache.get(CANDIDATURE_DEST_CHANNEL_ID || RECRUTEMENT_CHANNEL_ID);
+    const { poste, discordTag, discordId, prenom, age, motivation, pourquoiVous, roleSupport, sitTicket, sitAbus } = req.body;
+
+    const channel = await client.channels.fetch(CANDIDATURE_DEST_CHANNEL_ID).catch(() => null);
     if (!channel) {
-      return res.status(500).json({ error: "Salon de recrutement introuvable sur Discord." });
+      return res.status(500).json({ error: "Salon de destination des candidatures introuvable." });
     }
 
-    const embed = new EmbedBuilder()
-      .setColor('#e52d48')
-      .setTitle(`📄 Nouvelle candidature : ${service}`)
-      .addFields(
-        { name: '👤 Discord', value: `${discordTag} (<@${discordId}>)`, inline: false },
-        { name: '🆔 ID Discord', value: `\`${discordId}\``, inline: true },
-        { name: '👤 Prénom & Âge', value: `${prenom}, ${age} ans`, inline: true },
-        { name: '🎯 Ambition', value: ambition || 'Non renseigné', inline: false },
-        { name: '🔥 Motivation', value: motivation || 'Non renseigné', inline: false },
-        { name: '💼 Expérience', value: experience || 'Aucune', inline: false },
-        { name: '💡 Vision du rôle', value: roleModerateur || 'Non renseigné', inline: false }
-      )
-      .setTimestamp();
+    const postName = poste ? poste.toUpperCase() : 'SUPPORT';
 
-    await channel.send({ embeds: [embed] });
-    res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("Erreur lors de l'envoi de la candidature:", err);
-    res.status(500).json({ error: "Erreur interne du serveur." });
+    const embed = new EmbedBuilder()
+      .setColor('#2b2d31')
+      .setTitle(`DOSSIER DE CANDIDATURE — ${postName}`)
+      .setThumbnail(LOGO_URL)
+      .addFields(
+        { name: 'Identification Discord', value: `• **Compte :** \`${discordTag || 'Inconnu'}\`\n• **ID :** \`${discordId || 'Inconnu'}\``, inline: false },
+        { name: 'Informations IRL', value: `• **Prénom :** ${prenom || 'Non renseigné'}\n• **Âge :** ${age || 'Non renseigné'} ans`, inline: false },
+        { name: '⭐ QUESTIONS SUR VOUS', value: '----------------------------------------', inline: false },
+        { name: 'Quels sont vos motivations ?', value: `\`\`\`text\n${motivation || 'Aucune'}\n\`\`\``, inline: false },
+        { name: 'Pourquoi vous et pas un autre ?', value: `\`\`\`text\n${pourquoiVous || 'Aucune'}\n\`\`\``, inline: false },
+        { name: 'Selon vous, a quoi consiste le role d\'un support ?', value: `\`\`\`text\n${roleSupport || 'Aucune'}\n\`\`\``, inline: false },
+        { name: '⚖️ MISE EN SITUATION', value: '----------------------------------------', inline: false },
+        { name: 'Lorsqu\'un joueur ouvre un ticket, vous devez :', value: `\`\`\`text\n${sitTicket || 'Aucune'}\n\`\`\``, inline: false },
+        { name: 'Un autre support abuse de ses perms devant vous, que faites vous ?', value: `\`\`\`text\n${sitAbus || 'Aucune'}\n\`\`\``, inline: false },
+        { name: 'Statut du Dossier', value: '⏳ **EN ATTENTE DE TRAITEMENT**', inline: false }
+      )
+      .setFooter({ text: 'Urgence Lilloise — Système de Recrutement • Made by ymn_0ffcl' });
+
+    const targetId = discordId ? discordId.replace(/[^0-9]/g, '') : 'unknown';
+
+    const row = new ActionRowBuilder()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId(`accept_${targetId}`)
+          .setLabel('Accepter')
+          .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+          .setCustomId(`refuse_${targetId}`)
+          .setLabel('Refuser')
+          .setStyle(ButtonStyle.Danger)
+      );
+
+    const pingRoles = '<@&1530783982197805121> <@&1530783982210519232>';
+    await channel.send({ content: `${pingRoles} 🔔 **Nouvelle candidature reçue !**`, embeds: [embed], components: [row] });
+
+    return res.status(200).json({ success: true, message: "Candidature envoyée avec succès !" });
+  } catch (error) {
+    console.error("Erreur lors de l'envoi de la candidature :", error);
+    return res.status(500).json({ error: "Erreur interne du serveur." });
   }
 });
-// ==============================================
 
+// ================= GESTION DES INTERACTIONS (BOUTONS, TICKETS, MODALS) =================
 client.on('interactionCreate', async (interaction) => {
   try {
+    // 1. Menu déroulant des tickets
     if (interaction.isStringSelectMenu()) {
       if (interaction.customId === 'ticket_select_menu') {
         const selectedValue = interaction.values[0];
@@ -327,7 +388,60 @@ client.on('interactionCreate', async (interaction) => {
       }
     }
 
+    // 2. Boutons (Recrutement [Accepter/Refuser] & Fermeture de ticket)
     if (interaction.isButton()) {
+      // Gestion Boutons de Recrutement
+      if (interaction.customId.startsWith('accept_') || interaction.customId.startsWith('refuse_')) {
+        const [action, targetUserId] = interaction.customId.split('_');
+        
+        if (action === 'accept') {
+          await interaction.deferUpdate();
+          const staffUser = interaction.user;
+          const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+
+          const acceptEmbed = new EmbedBuilder()
+            .setTitle("🪪 Recrutement")
+            .setDescription("Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Acceptée.**\n\n🎉 Félicitation ! Votre candidature a été acceptée !\nIl vous est donc demandé d'ouvrir un ticket sur le Discord principal, dans la catégorie **recrutement**, afin de poursuivre les formalités. Merci de ne faire aucune mention (@) dans votre ticket.")
+            .setColor(0x2ED573)
+            .setThumbnail(LOGO_URL)
+            .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
+
+          if (targetUserId && targetUserId !== 'unknown') {
+            const targetUser = await client.users.fetch(targetUserId).catch(() => null);
+            if (targetUser) {
+              await targetUser.send({ embeds: [acceptEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+            }
+          }
+
+          const fields = originalEmbed.data.fields || [];
+          const updatedFields = fields.map(f => {
+            if (f.name === 'Statut du Dossier') {
+              return { name: 'Statut du Dossier', value: `✅ **ACCEPTÉ** par ${staffUser.tag}`, inline: false };
+            }
+            return f;
+          });
+
+          originalEmbed.setColor(0x2ED573).setFields(updatedFields);
+          await interaction.editReply({ embeds: [originalEmbed], components: [] });
+
+        } else if (action === 'refuse') {
+          const modal = new ModalBuilder()
+            .setCustomId(`modal_refuse_${targetUserId}`)
+            .setTitle('Motif du refus de la candidature');
+
+          const reasonInput = new TextInputBuilder()
+            .setCustomId('refuse_reason')
+            .setLabel('Raison du refus :')
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder('Ex: Réponse trop courte, profil inadapté...')
+            .setRequired(true);
+
+          modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+          await interaction.showModal(modal);
+        }
+      }
+
+      // Gestion Fermeture de Ticket
       if (interaction.customId === 'close_ticket') {
         const modal = new ModalBuilder()
           .setCustomId('modal_close_ticket')
@@ -345,7 +459,45 @@ client.on('interactionCreate', async (interaction) => {
       }
     }
 
+    // 3. Soumissions de Modals (Refus de recrutement & Fermeture de ticket)
     if (interaction.isModalSubmit()) {
+      // Modal Refus Recrutement
+      if (interaction.customId.startsWith('modal_refuse_')) {
+        const targetUserId = interaction.customId.replace('modal_refuse_', '');
+        const reason = interaction.fields.getTextInputValue('refuse_reason');
+
+        await interaction.deferUpdate();
+
+        const staffUser = interaction.user;
+        const originalEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
+
+        const refuseEmbed = new EmbedBuilder()
+          .setTitle("🪪 Recrutement")
+          .setDescription(`Votre demande de recrutement vient d'être revue.\n\n🌐 **Statut de la réponse**\n> **Refusée.**\n\n❌ Bonjour. Nous vous informons que votre candidature pour **Urgence Lilloise** n'a malheureusement **pas été retenue**.\n\n📌 **Raison du refus :**\n> *${reason}*\n\nMerci pour l'intérêt que vous portez à notre serveur.`)
+          .setColor(0xE52D48)
+          .setThumbnail(LOGO_URL)
+          .setFooter({ text: "ymn_0ffcl | Tous droits réservés" });
+
+        if (targetUserId && targetUserId !== 'unknown') {
+          const targetUser = await client.users.fetch(targetUserId).catch(() => null);
+          if (targetUser) {
+            await targetUser.send({ embeds: [refuseEmbed] }).catch(() => console.log("Impossible d'envoyer un MP."));
+          }
+        }
+
+        const fields = originalEmbed.data.fields || [];
+        const updatedFields = fields.map(f => {
+          if (f.name === 'Statut du Dossier') {
+            return { name: 'Statut du Dossier', value: `❌ **REFUSÉ** par ${staffUser.tag}\n**Raison :** \`\`\`\n${reason}\n\`\`\``, inline: false };
+          }
+          return f;
+        });
+
+        originalEmbed.setColor(0xE52D48).setFields(updatedFields);
+        await interaction.editReply({ embeds: [originalEmbed], components: [] });
+      }
+
+      // Modal Fermeture Ticket + Transcript
       if (interaction.customId === 'modal_close_ticket') {
         const closeReason = interaction.fields.getTextInputValue('close_reason');
         await interaction.reply({ content: '🔒 Fermeture du ticket et génération du transcript en cours...', ephemeral: true });
@@ -431,9 +583,9 @@ client.on('interactionCreate', async (interaction) => {
             { name: '⏱️ Durée du ticket', value: `\`${durationText}\``, inline: true },
             { name: '📊 Nombre de messages', value: `${messageCount}`, inline: true },
             { name: '📄 Transcript', value: 'Un fichier de transcription complet est joint.', inline: false }
-        )
-        .setFooter({ text: 'Support — Urgence Lilloise' })
-        .setTimestamp();
+          )
+          .setFooter({ text: 'Support — Urgence Lilloise' })
+          .setTimestamp();
 
         if (targetUser) {
           await targetUser.send({ embeds: [embedDetails], files: [transcriptAttachment] }).catch(() => {
@@ -461,6 +613,7 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
+// Lancement du serveur Web
 app.listen(PORT, () => {
   console.log(`Serveur Web démarré sur le port ${PORT}`);
 });
